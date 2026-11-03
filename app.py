@@ -50,6 +50,8 @@ def accounts() -> list[dict]:
                         "after": it.get("score_after")} for it in loop],
                  review={k: rv.get(k, "") for k in ("stage", "lead_agrees", "edit_level", "replied", "notes")})
         r["lane"] = lane(r, r["review"]["stage"])
+        d = data["steps"].get("draft")
+        r["draft"] = {"subject": d["subject"], "body": d["body"]} if d else None
         out.append(r)
     return out
 

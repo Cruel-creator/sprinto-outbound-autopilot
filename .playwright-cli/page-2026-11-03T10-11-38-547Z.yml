@@ -1,0 +1,161 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e3]:
+    - link "Outbound home" [ref=e4] [cursor=pointer]:
+      - /url: "#"
+      - text: Outbound
+      - superscript [ref=e5]: Sprinto
+    - navigation "Main" [ref=e6]:
+      - button "Home" [ref=e7] [cursor=pointer]
+      - button "Accounts 11" [ref=e8] [cursor=pointer]
+      - button "Pipeline" [ref=e9] [cursor=pointer]
+    - generic [ref=e10]:
+      - generic [ref=e11]: Domains to research
+      - textbox "Domains to research" [ref=e12]:
+        - /placeholder: Research a domain
+      - button "Research and send" [ref=e13] [cursor=pointer]
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - region [ref=e18]:
+        - generic [ref=e20]:
+          - heading "11 companies researched. 3 worth writing to." [level=1] [ref=e21]: 11 companies researched.3 worth writing to.
+          - list [ref=e22]:
+            - listitem [ref=e23]:
+              - generic [ref=e24]: "2"
+              - generic [ref=e25]: Emailed
+            - listitem [ref=e26]:
+              - generic [ref=e27]: "1"
+              - generic [ref=e28]: Held for you
+            - listitem [ref=e29]:
+              - generic [ref=e30]: "3"
+              - generic [ref=e31]: Verdicts fixed by research
+            - listitem [ref=e32]:
+              - generic [ref=e33]: Nov 3
+              - generic [ref=e34]: Last run
+      - region [ref=e35]:
+        - generic [ref=e36]:
+          - heading "Time per company" [level=2] [ref=e37]
+          - generic [ref=e38]: 00:15
+          - generic [ref=e39]:
+            - generic [ref=e40]: Autopilot, per company
+            - generic [ref=e41]: 99% faster than 15–20 min by hand
+      - region [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - heading "The agent loop" [level=2] [ref=e47]
+            - paragraph [ref=e48]:
+              - text: Research overturned
+              - emphasis [ref=e49]: 3 of 11
+              - text: verdicts that the website alone would have got wrong.
+          - generic [ref=e51]:
+            - 'button "Nurix AI: Reject 44 from the website, Qualify 66 after research" [ref=e52] [cursor=pointer]':
+              - generic [ref=e53]:
+                - generic [ref=e54]: Nurix AI
+                - generic [ref=e55]: web search
+              - generic [ref=e61]:
+                - generic [ref=e62]:
+                  - generic [ref=e63]: Reject
+                  - generic [ref=e64]: Qualify
+                - generic [ref=e65]: was Reject 44 → 66
+            - 'button "Atomicwork: Unsure 57 from the website, Qualify 64 after research" [ref=e66] [cursor=pointer]':
+              - generic [ref=e67]:
+                - generic [ref=e68]: Atomicwork
+                - generic [ref=e69]: web search
+              - generic [ref=e75]:
+                - generic [ref=e76]:
+                  - generic [ref=e77]: Unsure
+                  - generic [ref=e78]: Qualify
+                - generic [ref=e79]: was Unsure 57 → 64
+            - 'button "Bolna AI: Unsure 50 from the website, Qualify 62 after research" [ref=e80] [cursor=pointer]':
+              - generic [ref=e81]:
+                - generic [ref=e82]: Bolna AI
+                - generic [ref=e83]: web search + job boards
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - generic [ref=e91]: Unsure
+                  - generic [ref=e92]: Qualify
+                - generic [ref=e93]: was Unsure 50 → 62
+      - region [ref=e94]:
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - heading "Funnel" [level=2] [ref=e97]
+            - paragraph [ref=e98]:
+              - text: 11 in.
+              - emphasis [ref=e99]: 2 emailed
+              - text: . Every exit has a reason.
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - generic [ref=e103]: Researched
+              - generic [ref=e106]: 11/ 11
+            - generic [ref=e107]:
+              - generic [ref=e108]: Readable
+              - generic [ref=e111]: 10/ 11
+              - generic [ref=e112]: Site unreadable
+            - generic [ref=e113]:
+              - generic [ref=e114]: Qualified
+              - generic [ref=e117]: 3/ 11
+              - generic [ref=e118]: Not software · Already a Sprinto customer (2) · Scored under 60 (3) · Too large
+            - generic [ref=e119]:
+              - generic [ref=e120]: Contact found
+              - generic [ref=e123]: 3/ 11
+            - generic [ref=e124]:
+              - generic [ref=e125]: Emailed
+              - generic [ref=e128]: 2/ 11
+              - generic [ref=e129]: Email held
+      - region [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e132]:
+            - heading "Emails" [level=2] [ref=e133]
+            - paragraph [ref=e134]:
+              - text: 2 sent, 1 held.
+              - emphasis [ref=e135]: 3.9 / 10
+              - text: average, scored by a reviewer that rewrites anything under 7.
+          - generic [ref=e136]:
+            - button "Email to Kiran Darisi at Atomicwork" [ref=e137] [cursor=pointer]:
+              - generic [ref=e138]:
+                - generic [ref=e139]: To Kiran Darisi (Co-Founder and Chief Technology Officer) · Atomicwork
+                - generic [ref=e140]: Atomicwork 25 million series A
+              - generic [ref=e141]:
+                - generic [ref=e142]: —
+                - text: not scored
+              - paragraph [ref=e143]: Atomicwork builds an AI workforce for enterprise IT that recently secured 25,000,000 dollars in funding, which means enterprise security teams will demand verifiable proof that your platform protects sensitive operational data across cloud infrastructure. GeoIQ achieved SOC 2 and ISO 27001 compliance in 3 months using Sprinto to automate evidence collection. Which specific enterprise verticals are triggering your next security review cycle?
+              - generic [ref=e144]: Held · It used a number (25,000,000) the evidence does not show in that form.
+            - button "Email to Prateek Sachan at Bolna AI" [ref=e145] [cursor=pointer]:
+              - generic [ref=e146]:
+                - generic [ref=e147]: To Prateek Sachan (Co-founder & CTO) · Bolna AI
+                - generic [ref=e148]: Bolna AI data residency
+              - generic [ref=e149]:
+                - generic [ref=e150]: "4"
+                - text: reviewer score
+              - paragraph [ref=e151]: Enterprise buyers scaling multilingual voice AI infrastructure across India and the USA demand strict proof of data residency and localized privacy controls. Their security teams will require verified assurance that sensitive voice interaction data and audit logs remain fully isolated under regional mandates. StepSecurity got SOC 2 in 4 weeks with Sprinto, keeping engineering teams focused on core infrastructure instead of manual compliance prep. How are you currently managing security reviews for enterprise deals in those regions?
+              - generic [ref=e152]: Sent to your inbox
+            - button "Email to Mukesh Bansal at Nurix AI" [ref=e153] [cursor=pointer]:
+              - generic [ref=e154]:
+                - generic [ref=e155]: To Mukesh Bansal (Founder) · Nurix AI
+                - generic [ref=e156]: Compliance for Nurix AI agents
+              - generic [ref=e157]:
+                - generic [ref=e158]: "3.7"
+                - text: reviewer score
+              - paragraph [ref=e159]: Enterprise buyers scaling self-improving AI agents into financial services and retail demand strict compliance before signing contracts. Their security teams will want continuous proof of controls over customer data processing. StepSecurity achieved SOC 2 in 4 weeks with Sprinto. How are you currently managing security reviews for enterprise deals in financial services?
+              - generic [ref=e160]: Sent to your inbox
+      - region [ref=e161]:
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - heading "Needs you" [level=2] [ref=e164]
+            - paragraph [ref=e165]: 3 things need you.
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - generic [ref=e169]:
+                - generic [ref=e170]: ●Held email to Kiran Darisi
+                - generic [ref=e171]: It used a number (25,000,000) the evidence does not show in that form.
+              - button "Open email" [ref=e172] [cursor=pointer]
+            - generic [ref=e173]:
+              - generic [ref=e174]:
+                - generic [ref=e175]: ●wakefit.co
+                - generic [ref=e176]: Site unreadable
+              - button "Re-run" [ref=e177] [cursor=pointer]
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - generic [ref=e180]: ●2 awaiting a reply
+                - generic [ref=e181]: Bolna AI, Nurix AI
+              - button "Log replies" [ref=e182] [cursor=pointer]
+          - button "All accounts" [ref=e183] [cursor=pointer]

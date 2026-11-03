@@ -1,0 +1,147 @@
+- generic [ref=f3e1]:
+  - banner [ref=f3e67]:
+    - link "Outbound home" [ref=f3e68] [cursor=pointer]:
+      - /url: "#"
+      - text: Outbound
+      - superscript [ref=f3e69]: Sprinto
+    - navigation "Main" [ref=f3e70]:
+      - button "Home" [ref=f3e71] [cursor=pointer]
+      - button "Accounts 11" [active] [ref=f3e72] [cursor=pointer]
+      - button "Pipeline" [ref=f3e73] [cursor=pointer]
+    - generic [ref=f3e74]:
+      - generic [ref=f3e75]: Domains to research
+      - textbox "Domains to research" [ref=f3e76]:
+        - /placeholder: Research a domain
+      - button "Research and send" [ref=f3e77] [cursor=pointer]
+    - status
+  - main [ref=f3e3]:
+    - generic [ref=f3e80]:
+      - generic [ref=f3e81]:
+        - heading "Accounts" [level=1] [ref=f3e82]
+        - searchbox "Search accounts" [ref=f3e83]
+      - tablist "Filter accounts" [ref=f3e84]:
+        - tab "All11" [selected] [ref=f3e85] [cursor=pointer]
+        - tab "Emailed2" [ref=f3e86] [cursor=pointer]
+        - tab "Needs you2" [ref=f3e87] [cursor=pointer]
+        - tab "Not a fit7" [ref=f3e88] [cursor=pointer]
+      - table [ref=f3e90]:
+        - rowgroup [ref=f3e91]:
+          - row [ref=f3e92]:
+            - columnheader "Company" [ref=f3e93]
+            - columnheader "Status" [ref=f3e94]
+            - columnheader "Why" [ref=f3e95]
+            - columnheader "Agent loop" [ref=f3e96]
+            - columnheader "Score" [ref=f3e97]
+            - columnheader "Contact" [ref=f3e98]
+            - columnheader "Email" [ref=f3e99]
+        - rowgroup [ref=f3e100]:
+          - row [ref=f3e101] [cursor=pointer]:
+            - cell "Nurix AI nurix.ai" [ref=f3e102]:
+              - generic [ref=f3e103]: Nurix AI
+              - text: nurix.ai
+            - cell "Emailed" [ref=f3e104]
+            - cell "Emailed Mukesh Bansal" [ref=f3e105]
+            - cell "Reject → Qualify" [ref=f3e106]
+            - cell "66" [ref=f3e107]
+            - cell "Mukesh Bansal (Founder)" [ref=f3e108]
+            - cell "3.7" [ref=f3e109]
+          - row [ref=f3e110] [cursor=pointer]:
+            - cell "Atomicwork atomicwork.com" [ref=f3e111]:
+              - generic [ref=f3e112]: Atomicwork
+              - text: atomicwork.com
+            - cell "Held" [ref=f3e113]
+            - cell "Email held" [ref=f3e114]
+            - cell "Unsure → Qualify" [ref=f3e115]
+            - cell "64" [ref=f3e116]
+            - cell "Kiran Darisi (Co-Founder and Chief Technology Officer)" [ref=f3e117]
+            - cell "–" [ref=f3e118]
+          - row [ref=f3e119] [cursor=pointer]:
+            - cell "Bolna AI bolna.ai" [ref=f3e120]:
+              - generic [ref=f3e121]: Bolna AI
+              - text: bolna.ai
+            - cell "Emailed" [ref=f3e122]
+            - cell "Emailed Prateek Sachan" [ref=f3e123]
+            - cell "Unsure → Qualify" [ref=f3e124]
+            - cell "62" [ref=f3e125]
+            - cell "Prateek Sachan (Co-founder & CTO)" [ref=f3e126]
+            - cell "4" [ref=f3e127]
+          - row [ref=f3e128] [cursor=pointer]:
+            - cell "Greptile greptile.com" [ref=f3e129]:
+              - generic [ref=f3e130]: Greptile
+              - text: greptile.com
+            - cell "Not a fit" [ref=f3e131]
+            - cell "Scored under 60" [ref=f3e132]
+            - cell "Nurture" [ref=f3e133]
+            - cell "50" [ref=f3e134]
+            - cell "–" [ref=f3e135]
+            - cell "–" [ref=f3e136]
+          - row [ref=f3e137] [cursor=pointer]:
+            - cell "Maxim AI getmaxim.ai" [ref=f3e138]:
+              - generic [ref=f3e139]: Maxim AI
+              - text: getmaxim.ai
+            - cell "Not a fit" [ref=f3e140]
+            - cell "Already a Sprinto customer" [ref=f3e141]
+            - cell "Out" [ref=f3e142]
+            - cell "40" [ref=f3e143]
+            - cell "–" [ref=f3e144]
+            - cell "–" [ref=f3e145]
+          - row [ref=f3e146] [cursor=pointer]:
+            - cell "Gushwork gushwork.ai" [ref=f3e147]:
+              - generic [ref=f3e148]: Gushwork
+              - text: gushwork.ai
+            - cell "Not a fit" [ref=f3e149]
+            - cell "Scored under 60" [ref=f3e150]
+            - cell "Reject" [ref=f3e151]
+            - cell "40" [ref=f3e152]
+            - cell "–" [ref=f3e153]
+            - cell "–" [ref=f3e154]
+          - row [ref=f3e155] [cursor=pointer]:
+            - cell "Salesforce salesforce.com" [ref=f3e156]:
+              - generic [ref=f3e157]: Salesforce
+              - text: salesforce.com
+            - cell "Not a fit" [ref=f3e158]
+            - cell "Too large" [ref=f3e159]
+            - cell "Out" [ref=f3e160]
+            - cell "40" [ref=f3e161]
+            - cell "–" [ref=f3e162]
+            - cell "–" [ref=f3e163]
+          - row [ref=f3e164] [cursor=pointer]:
+            - cell "Rocketlane rocketlane.com" [ref=f3e165]:
+              - generic [ref=f3e166]: Rocketlane
+              - text: rocketlane.com
+            - cell "Not a fit" [ref=f3e167]
+            - cell "Already a Sprinto customer" [ref=f3e168]
+            - cell "Out" [ref=f3e169]
+            - cell "36" [ref=f3e170]
+            - cell "–" [ref=f3e171]
+            - cell "–" [ref=f3e172]
+          - row [ref=f3e173] [cursor=pointer]:
+            - cell "Hyperbound hyperbound.ai" [ref=f3e174]:
+              - generic [ref=f3e175]: Hyperbound
+              - text: hyperbound.ai
+            - cell "Not a fit" [ref=f3e176]
+            - cell "Scored under 60" [ref=f3e177]
+            - cell "Reject" [ref=f3e178]
+            - cell "23" [ref=f3e179]
+            - cell "–" [ref=f3e180]
+            - cell "–" [ref=f3e181]
+          - row [ref=f3e182] [cursor=pointer]:
+            - cell "Betastream beta.io" [ref=f3e183]:
+              - generic [ref=f3e184]: Betastream
+              - text: beta.io
+            - cell "Not a fit" [ref=f3e185]
+            - cell "Not software" [ref=f3e186]
+            - cell "Out" [ref=f3e187]
+            - cell "12" [ref=f3e188]
+            - cell "–" [ref=f3e189]
+            - cell "–" [ref=f3e190]
+          - row [ref=f3e191] [cursor=pointer]:
+            - cell "wakefit.co wakefit.co" [ref=f3e192]:
+              - generic [ref=f3e193]: wakefit.co
+              - text: wakefit.co
+            - cell "Needs data" [ref=f3e194]
+            - cell "Site unreadable" [ref=f3e195]
+            - cell "–" [ref=f3e196]
+            - cell "–" [ref=f3e197]
+            - cell "–" [ref=f3e198]
+            - cell "–" [ref=f3e199]

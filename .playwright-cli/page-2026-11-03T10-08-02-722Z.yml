@@ -1,0 +1,44 @@
+- main [ref=f3e3]:
+  - generic [ref=f3e4]:
+    - region [ref=f3e5]:
+      - generic [ref=f3e8]:
+        - heading "11 companies researched.3 worth writing to." [level=1] [ref=f3e9]:
+          - generic [aria-hidden] [ref=f3e11]: 11 companies researched.
+          - generic [aria-hidden] [ref=f3e13]: 3 worth writing to.
+        - list [ref=f3e14]
+      - generic [aria-hidden] [ref=f3e15]: Scroll
+    - region [ref=f3e18]:
+      - generic [ref=f3e19]:
+        - heading "Time per company" [level=2] [ref=f3e20]
+        - generic [ref=f3e21]: 17:30
+        - generic [ref=f3e22]: By hand, per company
+    - region [ref=f3e27]:
+      - generic [ref=f3e28]:
+        - heading "The agent loop" [level=2] [ref=f3e30]
+        - generic [ref=f3e33]:
+          - generic [ref=f3e34]: ○ website only ● researched
+          - generic [ref=f3e35]:
+            - generic [ref=f3e36]: "20"
+            - generic [ref=f3e37]: "40"
+            - generic [ref=f3e38]: 60 qualifies
+            - generic [ref=f3e39]: "80"
+            - generic [ref=f3e40]: "100"
+    - region [ref=f3e42]:
+      - heading "Funnel" [level=2] [ref=f3e45]
+    - region [ref=f3e49]:
+      - heading "Emails" [level=2] [ref=f3e52]
+    - region [ref=f3e54]:
+      - heading "Needs you" [level=2] [ref=f3e57]
+    - navigation "Chapters" [ref=f3e60]:
+      - link "Overview" [ref=f3e61] [cursor=pointer]:
+        - /url: "#ch-hero"
+      - link "Time" [ref=f3e62] [cursor=pointer]:
+        - /url: "#ch-time"
+      - link "Agent loop" [ref=f3e63] [cursor=pointer]:
+        - /url: "#ch-loop"
+      - link "Funnel" [ref=f3e64] [cursor=pointer]:
+        - /url: "#ch-funnel"
+      - link "Emails" [ref=f3e65] [cursor=pointer]:
+        - /url: "#ch-mail"
+      - link "Needs you" [ref=f3e66] [cursor=pointer]:
+        - /url: "#ch-queue"

@@ -1,0 +1,62 @@
+- generic [active] [ref=f4e1]:
+  - banner [ref=f4e3]:
+    - link "Outbound home" [ref=f4e4] [cursor=pointer]:
+      - /url: "#"
+      - text: Outbound
+      - superscript [ref=f4e5]: Sprinto
+    - navigation "Main" [ref=f4e6]:
+      - button "Home" [ref=f4e7] [cursor=pointer]
+      - button "Accounts" [ref=f4e8] [cursor=pointer]
+      - button "Pipeline" [ref=f4e9] [cursor=pointer]
+    - generic [ref=f4e10]:
+      - generic [ref=f4e11]: Domains to research
+      - textbox "Domains to research" [ref=f4e12]:
+        - /placeholder: Research a domain
+      - button "Research and send" [ref=f4e13] [cursor=pointer]
+    - status
+  - main [ref=f4e16]:
+    - generic [ref=f4e17]:
+      - region [ref=f4e18]:
+        - generic [ref=f4e20]:
+          - heading [level=1] [ref=f4e21]
+          - list
+        - generic [aria-hidden] [ref=f4e22]: Scroll
+      - region [ref=f4e23]:
+        - generic [ref=f4e24]:
+          - heading "Time per company" [level=2] [ref=f4e25]
+          - generic [ref=f4e26]: 00:00
+          - generic [ref=f4e27]: By hand
+      - region [ref=f4e31]:
+        - generic [ref=f4e32]:
+          - generic:
+            - heading "The agent loop" [level=2] [ref=f4e33]
+            - paragraph
+      - region [ref=f4e34]:
+        - generic [ref=f4e35]:
+          - generic:
+            - heading "Funnel" [level=2] [ref=f4e36]
+            - paragraph
+      - region [ref=f4e37]:
+        - generic [ref=f4e38]:
+          - generic:
+            - heading "Emails" [level=2] [ref=f4e39]
+            - paragraph
+      - region [ref=f4e40]:
+        - generic [ref=f4e41]:
+          - generic:
+            - heading "Needs you" [level=2] [ref=f4e42]
+            - paragraph
+          - button "All accounts" [ref=f4e43] [cursor=pointer]
+      - navigation "Chapters" [ref=f4e46]:
+        - link "Overview" [ref=f4e47] [cursor=pointer]:
+          - /url: "#ch-hero"
+        - link "Time" [ref=f4e48] [cursor=pointer]:
+          - /url: "#ch-time"
+        - link "Agent loop" [ref=f4e49] [cursor=pointer]:
+          - /url: "#ch-loop"
+        - link "Funnel" [ref=f4e50] [cursor=pointer]:
+          - /url: "#ch-funnel"
+        - link "Emails" [ref=f4e51] [cursor=pointer]:
+          - /url: "#ch-mail"
+        - link "Needs you" [ref=f4e52] [cursor=pointer]:
+          - /url: "#ch-queue"

@@ -1,0 +1,2 @@
+[    2438ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8765/favicon.ico:0
+[    2597ms] [WARNING] SplitText called before fonts loaded @ http://127.0.0.1:8765/vendor/SplitText.min.js:10

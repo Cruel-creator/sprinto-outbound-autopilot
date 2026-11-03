@@ -47,6 +47,15 @@
         ],
         "createdAt": "2026-11-03T09:39:26.427Z",
         "reason": "Claude triage: direction-round sketch in .impeccable/mocks/decision, a spent decision mock that never ships; Geist deliberately depicts the category-standard look"
+      },
+      {
+        "rule": "repeating-gradient",
+        "value": "*",
+        "files": [
+          "web/style.css"
+        ],
+        "createdAt": "2026-11-03T10:14:42.271Z",
+        "reason": "Claude triage: the dashed .bar60 line is the 60-point qualify threshold on the dumbbell chart, a data mark, not decoration"
       }
     ]
   }

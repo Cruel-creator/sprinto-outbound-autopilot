@@ -1,0 +1,45 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - region [ref=e5]:
+      - generic [ref=e8]:
+        - heading "11 companies researched.,[object HTMLBRElement],[object HTMLSpanElement]" [level=1] [ref=e9]:
+          - generic [aria-hidden] [ref=e11]: 11 companies
+          - generic [aria-hidden] [ref=e13]: researched.,[object
+          - generic [aria-hidden] [ref=e15]: HTMLBRElement],[object
+          - generic [aria-hidden] [ref=e17]: HTMLSpanElement]
+        - list [ref=e18]
+      - generic [aria-hidden] [ref=e19]: Scroll
+    - region [ref=e22]:
+      - generic [ref=e23]:
+        - heading "Time per company" [level=2] [ref=e24]
+        - generic [ref=e25]: 17:30
+        - generic [ref=e26]: By hand, per company
+    - region [ref=e31]:
+      - generic [ref=e32]:
+        - heading "The agent loop" [level=2] [ref=e34]
+        - generic [ref=e37]:
+          - generic [ref=e38]: Website only ○ ● after research
+          - generic [ref=e39]:
+            - generic [ref=e40]: "20"
+            - generic [ref=e41]: "40"
+            - generic [ref=e42]: "80"
+            - generic [ref=e43]: "100"
+    - region [ref=e45]:
+      - heading "Funnel" [level=2] [ref=e48]
+    - region [ref=e52]:
+      - heading "Emails" [level=2] [ref=e55]
+    - region [ref=e57]:
+      - heading "Needs you" [level=2] [ref=e60]
+    - navigation "Chapters" [ref=e63]:
+      - link "Overview" [ref=e64] [cursor=pointer]:
+        - /url: "#ch-hero"
+      - link "Time" [ref=e65] [cursor=pointer]:
+        - /url: "#ch-time"
+      - link "Agent loop" [ref=e66] [cursor=pointer]:
+        - /url: "#ch-loop"
+      - link "Funnel" [ref=e67] [cursor=pointer]:
+        - /url: "#ch-funnel"
+      - link "Emails" [ref=e68] [cursor=pointer]:
+        - /url: "#ch-mail"
+      - link "Needs you" [ref=e69] [cursor=pointer]:
+        - /url: "#ch-queue"
