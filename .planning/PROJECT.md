@@ -29,7 +29,7 @@ Run it on a list of domains and a personalised email that a human would actually
 - [ ] Step 1, Scrape: fetch the homepage plus key pages for raw signal
 - [ ] Step 2, Extract: Gemini turns raw content into structured company data (JSON schema)
 - [ ] Step 3, Qualify: a scored rubric (0–100, weighted signals, threshold) against a researched Sprinto ICP definition, with an **agent loop** that fetches more information when the data is insufficient. Tools: more site pages (/security, /trust, /pricing, /careers, /customers, /about), Gemini with Google Search grounding (funding stage, news, compliance mentions), and job postings (compliance, GRC and security roles)
-- [ ] Step 4, PoC: choose the right decision-maker from a hand-filled `contacts.csv` (sourced manually from Apollo), with role-based selection logic and a stated reason
+- [ ] Step 4, PoC: the Hunter.io Domain Search API (`HUNTER_API_KEY`, filtered to senior and executive) returns candidates for qualified companies only. Deterministic role rules by company size pick one person and record a stated reason. Responses are cached to disk to protect the 25 searches a month on the free tier. An optional `contacts.csv` acts as a fallback or override, and with neither source the company is marked `no_contact`
 - [ ] Step 5, Pain points: the two most likely pain points for that specific person and role, grounded in company evidence
 - [ ] Step 6, Draft: a personalised email addressed by name, under 120 words, with one specific hook from their own signals, one soft CTA, signed as Sprinto's Growth Lead
 - [ ] Step 7, Send: send via the Resend API (`RESEND_API_KEY`, from `onboarding@resend.dev` unless a domain is verified) with `to:` hardcoded to the user's own address, which must be the Resend account's email when sending from `onboarding@resend.dev`
@@ -41,8 +41,7 @@ Run it on a list of domains and a personalised email that a human would actually
 ### Out of Scope
 
 - Sending to real prospects. The case requires `to:` to be the user's own address.
-- Apollo API automation. The free tier is web UI only, so contacts are hand-filled into `contacts.csv` instead.
-- Hunter.io. Apollo was chosen.
+- Apollo. Replaced by the Hunter.io API, which allows contact lookup without manual hardcoding, keeping Step 4 automatic.
 - Gmail API (OAuth). Replaced by Resend: no Cloud Console or OAuth setup, and no risk of a school Workspace admin blocking third-party apps.
 - Web UI or dashboard. A CLI is fastest to build in 1.5 hours and is enough for "repeatable".
 - Follow-up sequences, reply tracking, CRM sync. Beyond a first-touch email.
@@ -61,9 +60,9 @@ Run it on a list of domains and a personalised email that a human would actually
 - **Timeline**: Live session on 3 Nov 2026, 1.5 hours. The walking skeleton must deliver an email to the inbox early.
 - **Tech stack**: Python 3.12, `google-genai` (Gemini), Resend for sending (`resend` SDK or `httpx` POST), `httpx` plus BeautifulSoup for scraping. Chosen for minimal setup and the quickest path to a working send.
 - **LLM**: Google Gemini API only, the user's key in `.env`.
-- **PoC source**: Apollo by hand, then `contacts.csv`. No contact API.
+- **PoC source**: the Hunter.io Domain Search API on the free tier, 25 searches a month. Call it only for qualified companies, cache every response, and never re-query a cached domain unless `--force` is passed.
 - **Email recipient**: Always the user's own address, from `.env`. Never a prospect.
-- **Secrets**: `.env` (Gemini and Resend keys) and the real `contacts.csv` are never committed (`.gitignore`).
+- **Secrets**: `.env` (Gemini, Resend and Hunter keys) and the real `contacts.csv` are never committed (`.gitignore`).
 - **Autonomy**: No interactive prompts during a run. The pipeline must decide every step itself.
 
 ## Key Decisions
@@ -71,7 +70,8 @@ Run it on a list of domains and a personalised email that a human would actually
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Python CLI (`python run.py domains.txt`) | Fastest to build, repeatable, easy to demo | — Pending |
-| Apollo by hand, then `contacts.csv` | Apollo's free tier has no API; keeps the run fully automatic once filled | — Pending |
+| Hunter.io Domain Search for finding the contact, replacing Apollo | Its API makes Step 4 fully automatic; the free tier's 25 searches a month are protected by querying only qualified companies and caching responses | — Pending |
+| Role rules by company size pick the person from Hunter's candidates | Deterministic and defensible ("why this person"); the LLM doesn't choose the contact | — Pending |
 | Gemini for every LLM step | User has a Gemini API key; Search grounding gives the agent loop web reach | — Pending |
 | Resend API for sending, not the Gmail API | One API key and no OAuth, so setup is fast and nothing can be blocked by a school admin; the email still lands in the user's Gmail inbox. A deliberate departure from the brief's "via Gmail" wording | — Pending |
 | "Open in Gmail" compose link in every report | Safety net for the live demo if the send fails | — Pending |
