@@ -158,9 +158,9 @@ svg { stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round
 /* chapter index */
 .index { position: fixed; right: var(--pad); top: 50%; translate: 0 -50%; z-index: 15; display: grid; gap: 14px; justify-items: end; }
 .index a { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); text-decoration: none; display: flex; align-items: center; gap: 10px; transition: color .3s; }
-.index a::after { content: ""; width: 14px; height: 1px; background: currentColor; transition: width .5s var(--ease); }
+.index a::after { content: ""; width: 36px; height: 1px; background: currentColor; transform: scaleX(.39); transform-origin: right; transition: transform .5s var(--ease); }
 .index a.on { color: var(--ink); }
-.index a.on::after { width: 36px; }
+.index a.on::after { transform: scaleX(1); }
 #view-home[hidden] + .index, .index.off { display: none; }
 
 /* pages */
@@ -190,8 +190,9 @@ tbody tr:hover { background: var(--bg-2); }
 .lane { padding: 18px 18px 40px 0; border-right: 1px solid var(--line-2); min-height: 360px; }
 .lane:last-child { border-right: 0; }
 .lane h3 { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 18px 18px; }
-.card { margin-left: 18px; padding: 16px 0; border-top: 1px solid var(--line-2); cursor: pointer; transition: padding .4s var(--ease); }
-.card:hover { padding-left: 8px; }
+.card { margin-left: 18px; padding: 16px 0; border-top: 1px solid var(--line-2); cursor: pointer; }
+.card > * { transition: transform .4s var(--ease); }
+.card:hover > * { transform: translateX(8px); }
 .card b { display: block; font: 400 18px/1.2 var(--display); }
 .card span { display: block; font-size: 12px; color: var(--ink-3); margin-top: 4px; }
 
