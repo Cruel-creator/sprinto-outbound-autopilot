@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}body{width:1440px;height:900px;overflow:hidden;background:#f4f6f3;color:#16191c;font:14px/1.45 Barlow,sans-serif}
+.num,.cond{font-family:"Barlow Semi Condensed",sans-serif;font-variant-numeric:tabular-nums}
+header{height:64px;background:#0f2e22;color:#e9efe9;display:flex;align-items:center;gap:28px;padding:0 32px}
+header b{font:700 18px "Barlow Semi Condensed";letter-spacing:.02em}nav{display:flex;gap:4px}nav a{padding:8px 14px;border-radius:6px;color:#a9c2b4}nav a.on{background:#1d4a37;color:#fff}
+.run{margin-left:auto;display:flex;gap:8px}.run input{width:380px;height:38px;border-radius:6px;border:1px solid #2c5c47;background:#163b2c;color:#fff;padding:0 12px}.run button{height:38px;padding:0 16px;border:0;border-radius:6px;background:#d9a62e;color:#16191c;font-weight:600}
+main{padding:24px 32px;display:grid;gap:16px}
+.proof{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #d6dcd6;background:#fff;border-radius:10px}
+.proof div{padding:16px 20px;border-left:1px solid #e3e7e2}.proof div:first-child{border:0}
+.proof .num{font-size:40px;font-weight:700;line-height:1}.proof small{display:block;color:#5c6660;margin-top:6px}.proof em{font-style:normal;color:#0f6b46;font-weight:600}
+.row{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+.panel{background:#fff;border:1px solid #d6dcd6;border-radius:10px;padding:18px 20px}.panel h2{font:600 13px "Barlow Semi Condensed";letter-spacing:.08em;text-transform:uppercase;color:#5c6660;margin-bottom:12px}
+.drs{display:grid;grid-template-columns:150px 1fr 40px 1fr;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #edf0ec}
+.call{font:700 18px "Barlow Semi Condensed";padding:6px 10px;border-radius:6px;text-align:center}.orig{background:#f3e3e1;color:#9c2a20}.rev{background:#0f2e22;color:#fff}
+.lit{background:#fbf5e4}
+.fow{display:flex;align-items:flex-end;gap:10px;height:170px}.fow div{flex:1;background:#0f2e22;border-radius:4px 4px 0 0;position:relative}.fow span{position:absolute;top:-22px;left:0;right:0;text-align:center;font:700 16px "Barlow Semi Condensed"}
+.fowl{display:flex;gap:10px;margin-top:6px;color:#5c6660;font-size:12px}.fowl span{flex:1;text-align:center}
+table{width:100%;border-collapse:collapse}th{font:600 12px "Barlow Semi Condensed";letter-spacing:.06em;text-transform:uppercase;color:#5c6660;text-align:left;padding:8px}td{padding:9px 8px;border-top:1px solid #edf0ec}
+.out{color:#c2362b}.no{color:#0f6b46;font-weight:600}.held{color:#9a6b00;font-weight:600}
+</style></head><body>
+<header><b>Sprinto Outbound</b><nav><a class="on">Overview</a><a>Accounts</a><a>Pipeline</a></nav><div class="run"><input placeholder="Add domains, e.g. acme.com"><button>Research &amp; send</button></div></header>
+<main>
+<section class="proof">
+<div><span class="num">11s</span><small>per account, vs <em>15–20 min</em> by hand</small></div>
+<div><span class="num">3</span><small>calls <em>overturned on review</em> by the agent loop</small></div>
+<div><span class="num">2 / 10</span><small>emailed · 1 held for a failed check</small></div>
+<div><span class="num">3.9</span><small>avg email score out of 10 · target 7</small></div>
+</section>
+<div class="row">
+<section class="panel"><h2>Decision review · fixed pipeline vs agent loop</h2>
+<div class="drs lit"><b>Nurix AI</b><span class="call orig">REJECT 52</span><span class="cond">→</span><span class="call rev">QUALIFY 66</span></div>
+<div class="drs lit"><b>Bolna AI</b><span class="call orig">UNSURE 43</span><span class="cond">→</span><span class="call rev">QUALIFY 62</span></div>
+<div class="drs"><b>Atomicwork</b><span class="call orig">UNSURE 57</span><span class="cond">→</span><span class="call rev">QUALIFY 74</span></div>
+<p style="color:#5c6660;margin-top:10px">Website silence on funding and headcount is unknown, not absent: the loop searched before deciding.</p></section>
+<section class="panel"><h2>Fall of wickets · where accounts dropped</h2>
+<div class="fow"><div style="height:100%"><span>10</span></div><div style="height:90%"><span>9</span></div><div style="height:30%"><span>3</span></div><div style="height:30%"><span>3</span></div><div style="height:20%"><span>2</span></div></div>
+<div class="fowl"><span>domains</span><span>readable</span><span>qualified</span><span>contact</span><span>emailed</span></div></section>
+</div>
+<section class="panel"><h2>Scorecard</h2><table><tr><th>Account</th><th>How out / status</th><th>Score</th><th>Contact</th><th>Email</th></tr>
+<tr><td>Nurix AI</td><td class="no">not out · emailed</td><td class="num">66</td><td>Mukesh Bansal, Founder</td><td class="num">3.7</td></tr>
+<tr><td>Bolna AI</td><td class="no">not out · emailed</td><td class="num">62</td><td>Prateek Sachan, CTO</td><td class="num">4.0</td></tr>
+<tr><td>Atomicwork</td><td class="held">retired hurt · email held, unbacked $25M claim</td><td class="num">64</td><td>Kiran Darisi, CTO</td><td>–</td></tr>
+<tr><td>Rocketlane</td><td class="out">out · already a Sprinto customer</td><td class="num">36</td><td>–</td><td>–</td></tr>
+</table></section>
+</main></body></html>

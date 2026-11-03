@@ -1,0 +1,98 @@
+{
+  "title": "Choose the visual world for the Outbound CRM",
+  "question": "The roll assigned the Scorecard & DRS world. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned", "kind": "assigned", "label": "Scorecard & DRS", "kicker": "THE ROLL",
+      "lineage": "printed cricket scorecards and the Decision Review System broadcast panel",
+      "thesis": "Every account is a batting entry; every agent-loop fix is a decision overturned on review.",
+      "palette": ["#0f2e22", "#f4f6f3", "#16191c", "#c2362b", "#d9a62e"],
+      "materials": ["outfield green shell", "scorebook tabular figures", "DRS review panel"],
+      "viewport": "Top bar with run box; proof strip of 4 numbers each against its baseline; a DRS panel showing ORIGINAL vs ON REVIEW for overturned calls beside a fall-of-wickets funnel; the scorecard table below.",
+      "risk": "Cricket fluency helps; the panels must still read to someone who has never watched a match.",
+      "raised": [
+        {"from": "challenger-gateboard", "raise": "A changed row stays lit until the Growth Lead opens it."},
+        {"from": "challenger-splitflap", "raise": "Columns never move between runs; only their values update in place."},
+        {"from": "challenger-saville", "raise": "One chart owns each panel; nothing else competes in it."},
+        {"from": "challenger-annual", "raise": "A strict 1px hairline grid aligns every panel edge."},
+        {"from": "challenger-acetate", "raise": "A five-step type scale; hierarchy by weight and colour, not size jumps."},
+        {"from": "challenger-goods", "raise": "Every account carries the same fixed furniture: score, how-out, contact, email score."}
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html"
+    },
+    {
+      "id": "model-pick", "kind": "pick", "label": "Auditor's Workpaper", "kicker": "IMPECCABLE’S PICK",
+      "lineage": "audit workpapers with tick-mark legends and W/P cross-references",
+      "thesis": "Every number carries an auditor's tick mark that says how it was verified.",
+      "palette": ["#f2f5f1", "#1b2420", "#2f6b4f", "#b8452f", "#2c4f8a"],
+      "materials": ["tick-mark legend", "workpaper references", "ruled exhibit tables"],
+      "viewport": "Top bar; a tick-mark legend strip; proof numbers each with its tick mark; accounts table where every cell links to its source.",
+      "risk": "The most expected direction for a compliance product; sober to the point of dry.",
+      "html": ".impeccable/mocks/decision/model-pick.html"
+    },
+    {
+      "id": "challenger-gateboard", "kind": "challenger", "catalogId": "vernacular-ephemera-boarding-pass-and-gate-board",
+      "label": "Gate Board & Boarding Pass", "verdict": "competitive",
+      "lineage": "airport departure boards and segmented boarding passes",
+      "thesis": "Accounts rank like departures; a changed status reflows in place and stays lit.",
+      "palette": ["#101418", "#eef1f4", "#ffd23f", "#e5484d"],
+      "materials": ["ranked board rows", "segmented pass"],
+      "viewport": "A ranked board of accounts by next action, with the selected account as a segmented pass on the right.",
+      "case": "Holds product clarity (a ranking you watch); loses audience identification to cricket.",
+      "risk": "Travel framing says nothing about evidence or compliance.",
+      "html": ".impeccable/mocks/decision/challenger-gateboard.html"
+    },
+    {
+      "id": "challenger-splitflap", "kind": "challenger", "catalogId": "signals-instruments-split-flap-concourse",
+      "label": "Split-flap Concourse", "verdict": "declined",
+      "palette": ["#121212", "#f2f2f2", "#f0a020"], "materials": ["flap cells", "steel frame"],
+      "thesis": "Accounts as departures on a flap board.", "viewport": "One ruled board of rows.",
+      "risk": "A costume of a display instrument on a working screen.",
+      "case": "Loses both axes: no link to sales or evidence.", "kept": "Columns never move; only values change."
+    },
+    {
+      "id": "challenger-acetate", "kind": "challenger", "catalogId": "rw-manual-acetate-tab-board",
+      "label": "Acetate Manual", "verdict": "declined",
+      "palette": ["#f28c28", "#f6f2e6", "#1d1d1d"], "materials": ["acetate leaves", "tab rail"],
+      "thesis": "The CRM as a tabbed reference manual.", "viewport": "Stepped tab rail beside one leaf.",
+      "risk": "Reads as documentation, not a live tool.",
+      "case": "Loses both axes.", "kept": "One-size type discipline."
+    },
+    {
+      "id": "challenger-saville", "kind": "challenger", "catalogId": "brand-identity-canon-saville-catalog-sleeve",
+      "label": "Catalog Sleeve", "verdict": "declined",
+      "palette": ["#141414", "#f5f5f5", "#e63946"], "materials": ["pulse plot", "colour code strip"],
+      "thesis": "Accounts as numbered catalog entries.", "viewport": "One pulse plot on black.",
+      "risk": "Coding names as colour strips fights self-explanation.",
+      "case": "Loses both axes.", "kept": "One plot owns the field."
+    },
+    {
+      "id": "challenger-annual", "kind": "challenger", "catalogId": "design-annual-s-plate-section",
+      "label": "Design Annual Plates", "verdict": "declined",
+      "palette": ["#f5f4f6", "#16181a", "#dcddf3"], "materials": ["registration marks", "hairlines"],
+      "thesis": "Accounts as plates in an annual.", "viewport": "Four-up plate row with credits.",
+      "risk": "Gallery framing for operational data.",
+      "case": "Loses both axes.", "kept": "1px hairline grid precision."
+    },
+    {
+      "id": "challenger-goods", "kind": "challenger", "catalogId": "pop-culture-shelf-character-goods-catalog",
+      "label": "Character Goods Catalog", "verdict": "declined",
+      "palette": ["#ffd6e0", "#c9f2e3", "#1f1f1f"], "materials": ["pastel cells", "name plates"],
+      "thesis": "Accounts as a ranked mascot roster.", "viewport": "Pastel grid of account cells.",
+      "risk": "Trivialises compliance decisions.",
+      "case": "Loses both axes.", "kept": "Fixed per-entity furniture."
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "kind": "canon", "label": "The category standard",
+    "thesis": "A clean SaaS sales dashboard (Attio, Linear Insights), executed impeccably.",
+    "palette": ["#ffffff", "#111827", "#2563eb"],
+    "materials": ["KPI tiles", "funnel chart", "data table"],
+    "viewport": "KPI row, funnel chart and a sortable accounts table.",
+    "risk": "Indistinguishable from every other dashboard by design.",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}

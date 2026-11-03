@@ -3,59 +3,100 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Outbound CRM</title>
+  <title>Sprinto Outbound</title>
+  <link rel="preload" href="/vendor/fonts/satoshi-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/vendor/lenis.css">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header class="top">
-    <div class="brand"><span class="logo">S</span><div><strong>Outbound CRM</strong><small>Sprinto Growth</small></div></div>
-    <form id="run-form" class="run">
-      <input id="run-input" placeholder="Add domains to research, e.g. acme.com, beta.io" autocomplete="off">
-      <button type="submit" id="run-btn">Research &amp; send</button>
-    </form>
-    <div id="job" class="job" aria-live="polite"></div>
-  </header>
+  <div class="shell">
+    <aside class="side" aria-label="Main">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="7" fill="var(--blue)" stroke="none"/><path d="M8 15.5c1 .9 2.3 1.4 3.9 1.4 2 0 3.3-.9 3.3-2.3 0-3.2-7-1.6-7-5.2 0-1.4 1.3-2.4 3.2-2.4 1.4 0 2.6.4 3.5 1.2" stroke="var(--bg)" stroke-width="2"/></svg>
+        <strong>Outbound</strong>
+      </div>
+      <nav>
+        <button class="nav on" data-view="home"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3.5v-4.5h-5V17H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+        <button class="nav" data-view="accounts"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg>Accounts<span class="count" id="n-accounts"></span></button>
+        <button class="nav" data-view="pipeline"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="4" height="12" rx="1"/><rect x="8.5" y="4" width="4" height="8" rx="1"/><rect x="14" y="4" width="3" height="5" rx="1"/></svg>Pipeline</button>
+      </nav>
+      <p class="side-foot">Emails go only to your inbox.</p>
+    </aside>
 
-  <section id="kpis" class="kpis"></section>
+    <div class="main">
+      <header class="top">
+        <form id="run-form" class="run" autocomplete="off">
+          <label class="sr" for="run-input">Domains to research</label>
+          <input id="run-input" placeholder="acme.com, beta.io">
+          <button type="submit" id="run-btn" class="btn primary">Research &amp; send</button>
+        </form>
+        <div id="job" class="job" role="status" aria-live="polite"></div>
+      </header>
 
-  <nav class="toolbar">
+      <main id="content">
+        <section id="view-home" class="view">
+          <div class="hero">
+            <h1 id="headline">Loading…</h1>
+            <div id="chips" class="hero-chips"></div>
+          </div>
+          <div class="bento">
+            <article class="tile t-time" aria-labelledby="h-time"><h2 id="h-time">Time per company</h2><div id="time"></div></article>
+            <article class="tile t-loop" aria-labelledby="h-loop"><h2 id="h-loop">Agent loop</h2><div id="dumbbell"></div></article>
+            <article class="tile t-funnel" aria-labelledby="h-funnel"><h2 id="h-funnel">Funnel</h2><div id="funnel"></div></article>
+            <article class="tile t-mail" aria-labelledby="h-mail"><h2 id="h-mail">Emails</h2><div id="mail"></div></article>
+            <article class="tile t-quality" aria-labelledby="h-quality"><h2 id="h-quality">Email quality</h2><div id="quality"></div></article>
+            <article class="tile t-queue" aria-labelledby="h-queue"><h2 id="h-queue">Needs you</h2><div id="queue"></div></article>
+          </div>
+        </section>
+
+        <section id="view-accounts" class="view" hidden>
+          <div class="hero row">
+            <h1>Accounts</h1>
+            <input id="search" type="search" placeholder="Search" aria-label="Search accounts">
+          </div>
+          <div id="filters" class="chips" role="tablist" aria-label="Filter accounts"></div>
+          <div id="table" class="tile flush"></div>
+        </section>
+
+        <section id="view-pipeline" class="view" hidden>
+          <div class="hero"><h1>Pipeline</h1></div>
+          <div id="board" class="board"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="scrim" class="scrim" hidden></div>
+  <aside id="drawer" class="drawer" hidden aria-labelledby="d-name" role="dialog" aria-modal="true">
+    <header class="drawer-head">
+      <div>
+        <h2 id="d-name"></h2>
+        <a id="d-domain" target="_blank" rel="noopener noreferrer"></a>
+        <p id="d-liner" class="muted"></p>
+      </div>
+      <button id="d-close" class="btn icon" aria-label="Close account"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
+    </header>
     <div class="tabs" role="tablist">
-      <button class="tab active" data-view="board">Pipeline</button>
-      <button class="tab" data-view="table">Accounts</button>
-    </div>
-    <input id="search" type="search" placeholder="Search accounts or contacts">
-  </nav>
-
-  <main>
-    <div id="board" class="board"></div>
-    <div id="table" class="table-wrap" hidden></div>
-  </main>
-
-  <aside id="drawer" class="drawer" hidden>
-    <div class="drawer-head">
-      <div><h2 id="d-name"></h2><a id="d-domain" target="_blank" rel="noopener noreferrer"></a><p id="d-liner"></p></div>
-      <button id="d-close" class="ghost" aria-label="Close">✕</button>
-    </div>
-    <div class="tabs d-tabs" role="tablist">
-      <button class="tab active" data-pane="overview">Overview</button>
-      <button class="tab" data-pane="contact">Contact</button>
+      <button class="tab on" data-pane="overview">Company</button>
+      <button class="tab" data-pane="contact">Person</button>
       <button class="tab" data-pane="email">Email</button>
       <button class="tab" data-pane="activity">Activity</button>
     </div>
-    <div id="d-body" class="drawer-body"></div>
+    <div id="d-body" class="drawer-body" data-lenis-prevent></div>
     <form id="review" class="review">
-      <h3>Your review</h3>
-      <div class="grid">
+      <div class="review-grid">
         <label>Stage<select name="stage"></select></label>
-        <label>Right company &amp; person?<select name="lead_agrees"><option value="">–</option><option>y</option><option>n</option></select></label>
-        <label>Edits needed<select name="edit_level"><option value="">–</option><option>none</option><option>light</option><option>rewrite</option></select></label>
-        <label>Replied<select name="replied"><option value="">–</option><option>y</option><option>n</option></select></label>
+        <label>Right pick?<select name="lead_agrees"><option value="">–</option><option value="y">Yes</option><option value="n">No</option></select></label>
+        <label>Edits needed<select name="edit_level"><option value="">–</option><option value="none">None</option><option value="light">Light</option><option value="rewrite">Rewrite</option></select></label>
+        <label>Replied<select name="replied"><option value="">–</option><option value="y">Yes</option><option value="n">No</option></select></label>
       </div>
-      <label>Notes<textarea name="notes" rows="2" maxlength="500"></textarea></label>
-      <button type="submit">Save</button> <span id="saved" class="muted"></span>
+      <label class="notes">Notes<textarea name="notes" rows="2" maxlength="500"></textarea></label>
+      <div class="review-foot"><button type="submit" class="btn primary">Save</button><span id="saved" class="muted" role="status"></span></div>
     </form>
   </aside>
-  <div id="scrim" class="scrim" hidden></div>
+
+  <script src="/vendor/gsap.min.js"></script>
+  <script src="/vendor/lenis.min.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

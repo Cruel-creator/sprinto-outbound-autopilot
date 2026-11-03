@@ -20,6 +20,7 @@ PORT = 8765
 WEB = Path(__file__).resolve().parent / "web"
 FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
          "/style.css": ("style.css", "text/css")}
+VENDOR_TYPES = {".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2"}
 DOMAIN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9-]{1,63})+$")
 JOB = {"running": False, "queue": [], "current": None, "done": [], "error": None}
 LOCK = threading.Lock()
@@ -43,7 +44,10 @@ def accounts() -> list[dict]:
         data = json.loads(p.read_text(encoding="utf-8"))
         r, rv = row(data, icp), review.get(data["domain"], {})
         ext = data["steps"].get("extract") or {}
-        r.update(name=ext.get("name") or data["domain"], one_liner=ext.get("one_liner", ""),
+        loop = (data["steps"].get("qualify") or {}).get("iterations", [])
+        r.update(name=ext.get("name") or data["domain"], one_liner=ext.get("one_liner", ""), started=data.get("started"),
+                 loop=[{"tool": it["tool"], "arg": it["arg"], "before": it["score_before"],
+                        "after": it.get("score_after")} for it in loop],
                  review={k: rv.get(k, "") for k in ("stage", "lead_agrees", "edit_level", "replied", "notes")})
         r["lane"] = lane(r, r["review"]["stage"])
         out.append(r)
@@ -92,7 +96,7 @@ class Handler(BaseHTTPRequestHandler):
     def _send(self, code: int, body, ctype="application/json"):
         raw = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(code)
-        self.send_header("Content-Type", f"{ctype}; charset=utf-8")
+        self.send_header("Content-Type", ctype if ctype.startswith("font/") else f"{ctype}; charset=utf-8")
         self.send_header("Content-Security-Policy", "default-src 'self'; img-src 'self' data:")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
@@ -108,6 +112,11 @@ class Handler(BaseHTTPRequestHandler):
         if path in FILES:
             name, ctype = FILES[path]
             return self._send(200, (WEB / name).read_bytes(), ctype)
+        if path.startswith("/vendor/"):
+            root = (WEB / "vendor").resolve()
+            f = (root / path[len("/vendor/"):]).resolve()
+            if f.is_file() and root in f.parents and f.suffix in VENDOR_TYPES:   # no traversal outside web/vendor
+                return self._send(200, f.read_bytes(), VENDOR_TYPES[f.suffix])
         if path == "/api/accounts":
             return self._send(200, {"accounts": accounts(), "stages": STAGES, "job": JOB})
         if path == "/api/job":

@@ -20,6 +20,33 @@
         ],
         "createdAt": "2026-11-03T09:14:09.759Z",
         "reason": "Claude triage: dot shows only while a pipeline run is in progress (.job.busy, polled from /api/job), i.e. genuinely live state"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-11-03T09:39:26.267Z",
+        "reason": "Claude triage: direction-round sketch in .impeccable/mocks/decision, a spent decision mock that never ships"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-11-03T09:39:26.346Z",
+        "reason": "Claude triage: direction-round sketch in .impeccable/mocks/decision, a spent decision mock that never ships"
+      },
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-11-03T09:39:26.427Z",
+        "reason": "Claude triage: direction-round sketch in .impeccable/mocks/decision, a spent decision mock that never ships; Geist deliberately depicts the category-standard look"
       }
     ]
   }
