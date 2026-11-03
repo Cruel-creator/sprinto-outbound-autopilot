@@ -116,12 +116,53 @@ Which phases cover which requirements. Filled in when the roadmap is created.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| SETUP-01 | Phase 1 | Pending |
+| SETUP-02 | Phase 1 | Pending |
+| SETUP-03 | Phase 1 | Pending |
+| RUN-01 | Phase 10 | Pending |
+| RUN-02 | Phase 10 | Pending |
+| RUN-03 | Phase 10 | Pending |
+| RUN-04 | Phase 2 | Pending |
+| RUN-05 | Phase 2 | Pending |
+| SCRP-01 | Phase 3 | Pending |
+| SCRP-02 | Phase 3 | Pending |
+| SCRP-03 | Phase 3 | Pending |
+| EXTR-01 | Phase 4 | Pending |
+| EXTR-02 | Phase 4 | Pending |
+| EXTR-03 | Phase 4 | Pending |
+| QUAL-01 | Phase 5 | Pending |
+| QUAL-02 | Phase 5 | Pending |
+| QUAL-03 | Phase 5 | Pending |
+| QUAL-04 | Phase 5 | Pending |
+| QUAL-05 | Phase 5 | Pending |
+| AGNT-01 | Phase 6 | Pending |
+| AGNT-02 | Phase 6 | Pending |
+| AGNT-03 | Phase 6 | Pending |
+| AGNT-04 | Phase 6 | Pending |
+| AGNT-05 | Phase 6 | Pending |
+| AGNT-06 | Phase 6 | Pending |
+| POC-01 | Phase 7 | Pending |
+| POC-02 | Phase 7 | Pending |
+| POC-03 | Phase 7 | Pending |
+| PAIN-01 | Phase 8 | Pending |
+| PAIN-02 | Phase 8 | Pending |
+| DRFT-01 | Phase 8 | Pending |
+| DRFT-02 | Phase 8 | Pending |
+| DRFT-03 | Phase 8 | Pending |
+| DRFT-04 | Phase 8 | Pending |
+| SEND-01 | Phase 9 | Pending |
+| SEND-02 | Phase 9 | Pending |
+| SEND-03 | Phase 9 | Pending |
+| TRCE-01 | Phase 2 | Pending |
+| TRCE-02 | Phase 9 | Pending |
+| TRCE-03 | Phase 10 | Pending |
+| DATA-01 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 41 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 41 ⚠️
+- Mapped to phases: 41
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-11-03*
-*Last updated: 2026-11-03 after initial definition*
+*Last updated: 2026-11-03 after roadmap creation (traceability filled)*
