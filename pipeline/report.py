@@ -1,8 +1,24 @@
-"""report.md + summary.md rendered from the trace. No LLM calls."""
+"""report.md, summary.md and review.csv rendered from the traces. No LLM calls."""
 from __future__ import annotations
 
+import csv
+import json
 from pathlib import Path
 from urllib.parse import quote
+
+from pipeline.qualify import load_icp, verdict
+
+REVIEW_COLS = ["domain", "status", "verdict", "contact", "subject", "sent_at",
+               "lead_agrees", "edit_level", "replied", "notes"]
+HUMAN_COLS = REVIEW_COLS[6:]   # filled in by the Growth Lead, never overwritten
+
+
+def first_pass(q: dict, icp: dict) -> tuple[str, int]:
+    """What a fixed pipeline (no agent loop) would have decided: the first assessment, before any tool call."""
+    if not q["iterations"]:
+        return q["verdict"], q["score"]
+    it = q["iterations"][0]
+    return verdict({"disqualifier": None, "lo": it["lo"], "hi": it["hi"]}, icp), it["score_before"]
 
 
 def _ev(data: dict, eid: str) -> str:
@@ -17,7 +33,8 @@ def gmail_link(to_email: str, subject: str, text: str) -> str:
     return f"https://mail.google.com/mail/?view=cm&to={quote(to_email)}&su={quote(subject)}&body={quote(text)}"
 
 
-def render(data: dict, to_email: str) -> str:
+def render(data: dict, to_email: str, icp: dict | None = None) -> str:
+    icp = icp or load_icp()
     st = data["steps"]
     q, c, d = st.get("qualify"), st.get("contact"), st.get("draft")
     lines = [f"# {data['domain']}: {data['status']}" + (f" (failed at {data['failed_step']})" if data["failed_step"] else "")]
@@ -28,7 +45,12 @@ def render(data: dict, to_email: str) -> str:
         lines.append(f"\n**{x['name']}**: {x['one_liner']} (product_type={x['product_type']}, headcount={x['headcount']})")
     if q:
         lines += [f"\n## Why this company: {q['verdict']}, score {q['score']}/100",
-                  q["reason"], "", "| Signal | Bucket | Points | Evidence |", "|---|---|---|---|"]
+                  q["reason"]]
+        fv, fs = first_pass(q, icp)
+        lines.append(f"\nFixed pipeline (scrape, extract, qualify once): **{fv}** at {fs}/100. "
+                     f"Agent loop: **{q['verdict']}** at {q['score']}/100 after {len(q['iterations'])} tool calls."
+                     + (" Thin signal: the loop changed the verdict." if fv != q["verdict"] else ""))
+        lines += ["", "| Signal | Bucket | Points | Evidence |", "|---|---|---|---|"]
         for s in q["signals"]:
             ev = "<br>".join(_ev(data, i) for i in s["evidence_ids"]) or s["state"]
             lines.append(f"| {s['signal_id']} | {s['bucket']} | {s['points']}/{s['max']} | {ev} |")
@@ -45,7 +67,7 @@ def render(data: dict, to_email: str) -> str:
         lines.append("\n## Why this person")
         ch = c["chosen"]
         lines.append(f"**{ch['first_name']} {ch['last_name']}**, {ch['position']}" if ch else "No contact chosen.")
-        lines += [f"Rule: {c['rule_fired']}", f"Reason: {c['reason']}",
+        lines += [f"Rule: {c['rule_fired']}", f"Reason: {c['reason']}"] + ([c["fallback"]] if c.get("fallback") else []) + [
                   f"Considered: {'; '.join(c['considered']) or 'none'}" + (f" (error: {c['error']})" if c.get("error") else "")]
     if "pains" in st:
         lines.append("\n## Pain points")
@@ -65,15 +87,91 @@ def render(data: dict, to_email: str) -> str:
     return "\n".join(lines) + "\n"
 
 
-def write_report(data: dict, to_email: str, out_dir: Path) -> None:
+def write_report(data: dict, to_email: str, out_dir: Path, icp: dict | None = None) -> None:
     p = out_dir / data["domain"] / "report.md"
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(render(data, to_email), encoding="utf-8")
+    p.write_text(render(data, to_email, icp), encoding="utf-8")
 
 
-def summary(rows: list[dict]) -> str:
-    out = ["# Run summary", "", "| Domain | Status | Verdict | Score | Contact | Reason |", "|---|---|---|---|---|---|"]
+def row(data: dict, icp: dict) -> dict:
+    st = data["steps"]
+    q, who = st.get("qualify"), (st.get("contact") or {}).get("chosen")
+    r = {"domain": data["domain"], "status": data["status"], "seconds": data.get("seconds"),
+         "llm_calls": len(data["llm_calls"]),
+         "reason": data.get("reason") or (q or {}).get("reason") or data.get("error") or ""}
+    if q:
+        fv, fs = first_pass(q, icp)
+        r.update(verdict=q["verdict"], score=q["score"], fixed=fv, fixed_score=fs, tool_calls=len(q["iterations"]))
+    if who:
+        r["contact"] = f"{who['first_name']} {who['last_name']} ({who['position']})"
+    if (st.get("send") or {}).get("id"):
+        r.update(subject=st["draft"]["subject"], sent_at=st["send"]["sent_at"])
+    return r
+
+
+def write_review(rows: list[dict], path: Path) -> list[dict]:
+    """One row per company for the Growth Lead; their columns survive re-runs."""
+    old = {}
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as f:
+            old = {r["domain"]: r for r in csv.DictReader(f)}
     for r in rows:
-        out.append(f"| {r['domain']} | {r['status']} | {r.get('verdict', '')} | {r.get('score', '')} | "
+        keep = old.get(r["domain"], {})
+        old[r["domain"]] = {**{k: r.get(k) or "" for k in REVIEW_COLS[:6]}, **{k: keep.get(k, "") for k in HUMAN_COLS}}
+    with path.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=REVIEW_COLS)
+        w.writeheader()
+        w.writerows(old.values())
+    return list(old.values())
+
+
+def _pct(n: int, d: int) -> str:
+    return f"{n}/{d} ({100 * n // d}%)" if d else "n/a"
+
+
+def metrics(rows: list[dict], review: list[dict]) -> list[str]:
+    n, secs = len(rows), [r["seconds"] for r in rows if r.get("seconds")]
+    looped = [r for r in rows if r.get("tool_calls")]
+    changed = [r for r in rows if r.get("fixed") and r["fixed"] != r["verdict"]]
+    out = ["", "## Run metrics (DECISIONS.md: baseline 15-20 min per company, by hand)",
+           f"- Companies: {n}. Emails sent: {_pct(sum(r['status'] == 'sent' for r in rows), n)}.",
+           f"- Pipeline time: {sum(secs) / len(secs):.0f} s per company on average." if secs else "- Pipeline time: n/a",
+           f"- Agent loop ran on {len(looped)} thin-signal companies and changed the verdict on {len(changed)}"
+           + (f": {', '.join(r['domain'] + ' ' + r['fixed'] + ' -> ' + r['verdict'] for r in changed)}." if changed else "."),
+           f"- Gemini calls: {sum(r.get('llm_calls', 0) for r in rows)}."]
+    done = [r for r in review if r["edit_level"].strip()]
+    out.append("\n## Growth Lead review (out/review.csv)")
+    if not done:
+        return out + ["- Nothing reviewed yet: fill lead_agrees (y/n), edit_level (none/light/rewrite), replied (y/n)."]
+    agree = sum(r["lead_agrees"].strip().lower().startswith("y") for r in done)
+    rewrite = sum(r["edit_level"].strip().lower() == "rewrite" for r in done)
+    replied = sum(r["replied"].strip().lower().startswith("y") for r in done)
+    kill = [m for m, hit in [("rewrite share > 50%", rewrite * 2 > len(done)),
+                             ("agreement < 60%", agree * 10 < 6 * len(done))] if hit]
+    return out + [f"- Reviewed: {len(done)}. Lead agrees: {_pct(agree, len(done))}. "
+                  f"Rewritten: {_pct(rewrite, len(done))}. Replies: {_pct(replied, len(done))}.",
+                  f"- Kill criterion: {'HIT: ' + ', '.join(kill) if kill else 'not hit'}."]
+
+
+def summary(rows: list[dict], review: list[dict] | None = None) -> str:
+    out = ["# Run summary", "", "| Domain | Status | Fixed pipeline -> Agent loop | Score | Contact | Reason |",
+           "|---|---|---|---|---|---|"]
+    for r in rows:
+        fx = f"{r['fixed']} -> {r['verdict']}" if r.get("fixed") else r.get("verdict", "")
+        out.append(f"| {r['domain']} | {r['status']} | {fx} | {r.get('score', '')} | "
                    f"{r.get('contact', '')} | {r.get('reason', '')[:160]} |")
-    return "\n".join(out) + "\n"
+    return "\n".join(out + metrics(rows, review or [])) + "\n"
+
+
+def rebuild(out_dir: Path, to_email: str, domains: list[str] | None = None) -> list[dict]:
+    """Re-render every report, summary.md and review.csv from trace.json files. No API calls."""
+    icp, rows = load_icp(), []
+    paths = [out_dir / d / "trace.json" for d in domains] if domains else sorted(out_dir.glob("*/trace.json"))
+    for p in paths:
+        if p.exists():
+            data = json.loads(p.read_text(encoding="utf-8"))
+            write_report(data, to_email, out_dir, icp)
+            rows.append(row(data, icp))
+    review = write_review(rows, out_dir / "review.csv")
+    (out_dir / "summary.md").write_text(summary(rows, review), encoding="utf-8")
+    return rows

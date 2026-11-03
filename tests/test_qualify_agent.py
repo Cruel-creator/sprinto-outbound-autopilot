@@ -137,3 +137,36 @@ def test_loop_exits_early_when_decided(tmp_path):
     llm = FakeLLM([_a(_all_known(), action=NextAction(tool="web_research", arg="q"))])
     res = run_loop("acme.com", PROFILE, [], _trace(tmp_path), llm, ICP, tools)
     assert tools.calls == [] and res["verdict"] == "QUALIFY"
+
+
+def _thin(t):
+    """Homepage only: software + enterprise tier, the site says nothing about funding, stage, headcount or hiring."""
+    return _a({"A1_b2b_software": "b2b_saas_devtool_or_ai", "B1_enterprise_motion": "enterprise_tier_plus_contact_sales",
+               "B2_enterprise_logos": "three_plus_enterprise_logos", "C1_certification_gap": "no_trust_page_and_no_certs",
+               "A2_stage": "none_found", "A3_headcount": "other", "C3_security_hiring": "none",
+               "C4_recent_funding": "older_or_none"}, ev="E9")
+
+
+def test_thin_signal_silence_is_unknown_and_triggers_the_loop(tmp_path):
+    t = _trace(tmp_path)
+    t.add_evidence("https://acme.com/", "verified quote 2", True, "extract")   # E3
+    a = _thin(t)
+    for s in a.signals:   # positives cite real evidence; external "absent" calls cite nothing
+        s.evidence_ids = [] if s.signal_id in ("A2_stage", "A3_headcount", "C3_security_hiring", "C4_recent_funding") else ["E3"]
+    res = qualify.score(ICP, a, t, [])
+    ext = {s["signal_id"]: s["state"] for s in res["signals"] if ICP["signals"][s["signal_id"]].get("external")}
+    assert set(ext.values()) == {"unknown"}
+    assert res["lo"] == 38 and res["hi"] >= 60 and qualify.needs_more(res, ICP)   # a fixed pipeline would REJECT here
+
+
+def test_absent_external_signal_counts_with_evidence(tmp_path):
+    t = _trace(tmp_path)
+    res = qualify.score(ICP, _a(_all_known({"A2_stage": "none_found"})), t, [])
+    assert next(s for s in res["signals"] if s["signal_id"] == "A2_stage")["state"] == "absent"
+
+
+def test_unreadable_page_is_not_evidence(tmp_path):
+    t = _trace(tmp_path)
+    t.add_evidence("https://acme.com/careers", "GET /careers -> EMPTY_SHELL", True, "scrape")   # E3
+    res = qualify.score(ICP, _a(_all_known({"C3_security_hiring": "none"}), ev="E3"), t, [])
+    assert next(s for s in res["signals"] if s["signal_id"] == "C3_security_hiring")["state"] == "unknown"

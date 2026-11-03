@@ -80,6 +80,16 @@ class Draft(BaseModel):
     body: str                # no greeting, no sign-off (Python adds those)
 
 
+class Leader(BaseModel):
+    first_name: str
+    last_name: str
+    title: str
+
+
+class Leaders(BaseModel):
+    leaders: list[Leader]
+
+
 # ---------- non-LLM ----------
 class Candidate(BaseModel):
     first_name: str
@@ -88,4 +98,4 @@ class Candidate(BaseModel):
     seniority: str = ""
     email: str = ""
     linkedin: str = ""
-    source: str = "hunter"   # hunter|csv
+    source: str = "hunter"   # hunter|csv|web search + hunter email-finder

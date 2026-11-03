@@ -1,6 +1,7 @@
 """Step 3a: deterministic ICP scoring. The LLM picks buckets + cites evidence; Python does the maths."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -21,7 +22,9 @@ def weight(sig: dict) -> int:
 def _counts(eid: str, trace) -> bool:
     """Evidence backs a claim if it exists and is verified on-page, or came from grounded search."""
     e = trace.evidence(eid)
-    return bool(e) and (e["verified"] or e["added_by"] == "web_research")
+    if not e or re.search(r"-> (BLOCKED|TIMEOUT|EMPTY_SHELL|NON_HTML|TOO_BIG)$", e["quote"]):
+        return False   # a page we could not read proves nothing either way
+    return e["verified"] or e["added_by"] == "web_research"
 
 
 def sprinto_hosted(pages: list[Page], trace) -> str | None:
@@ -41,8 +44,8 @@ def score(icp: dict, a: Assessment, trace, pages: list[Page]) -> dict:
         ids = [i for i in (c.evidence_ids if c else []) if _counts(i, trace)]
         pts = sig["buckets"].get(bucket, 0)
         state = "unknown" if bucket == "unknown" else ("present" if pts else "absent")
-        if pts and not ids:  # positive points need evidence
-            state, pts = "unknown", 0
+        if not ids and (pts or (state == "absent" and sig.get("external"))):
+            state, pts = "unknown", 0  # points need evidence; so does "absent" for things a website can't show
         w = weight(sig)
         lo += pts
         unknown_max += w if state == "unknown" else 0

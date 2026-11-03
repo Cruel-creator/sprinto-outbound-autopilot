@@ -97,3 +97,27 @@ def test_read_domains_strips_comments_and_scheme(tmp_path):
     p = tmp_path / "d.txt"
     p.write_text("# header\nhttps://www.Acme.com/   # note\n\nbolna.ai\n", encoding="utf-8")
     assert run.read_domains(p) == ["acme.com", "bolna.ai"]
+
+
+def test_report_shows_fixed_vs_agent_and_review_csv_keeps_human_columns(tmp_path):
+    from pipeline.report import first_pass, rebuild
+    q = {"verdict": "QUALIFY", "score": 66, "reason": "r", "signals": [], "disqualifier": None, "caps": [], "tags": [],
+         "stop_reason": "decided", "iterations": [{"n": 1, "tool": "web_research", "arg": "funding", "rationale": "x",
+                                                    "target_signals": ["A2_stage"], "result": "ok", "score_before": 43,
+                                                    "lo": 43, "hi": 80, "score_after": 66}]}
+    assert first_pass(q, ICP) == ("REJECT", 43)
+    data = {"domain": "acme.com", "status": "sent", "failed_step": None, "steps": {"qualify": q}, "evidence": [],
+            "llm_calls": [{}, {}], "seconds": 40.0}
+    (tmp_path / "acme.com").mkdir()
+    (tmp_path / "acme.com" / "trace.json").write_text(json.dumps(data), encoding="utf-8")
+    rebuild(tmp_path, "me@example.com", ["acme.com"])
+    review = tmp_path / "review.csv"
+    review.write_text(review.read_text(encoding="utf-8").replace("acme.com,sent,QUALIFY,,,,,,,",
+                                                                 "acme.com,sent,QUALIFY,,,,n,rewrite,,"), encoding="utf-8")
+    rebuild(tmp_path, "me@example.com", ["acme.com"])
+    assert "acme.com,sent,QUALIFY,,,,n,rewrite,," in review.read_text(encoding="utf-8")   # human columns survive
+    summ = (tmp_path / "summary.md").read_text(encoding="utf-8")
+    assert "REJECT -> QUALIFY" in summ and "changed the verdict on 1" in summ
+    assert "Kill criterion: HIT" in summ
+    assert "Fixed pipeline (scrape, extract, qualify once): **REJECT** at 43/100" in \
+        (tmp_path / "acme.com" / "report.md").read_text(encoding="utf-8")

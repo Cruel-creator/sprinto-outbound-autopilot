@@ -63,8 +63,10 @@ def hooks(qual: dict, trace) -> list[dict]:
     out = []
     for sid in HOOK_ORDER:
         s = by_id.get(sid)
-        if s and s["points"] and s["evidence_ids"]:
-            e = trace.evidence(s["evidence_ids"][0])
+        quotes = [e for i in (s["evidence_ids"] if s and s["points"] else [])
+                  if (e := trace.evidence(i)) and not e["quote"].startswith("GET ")]  # a fetch result is not a hook
+        if quotes:
+            e = quotes[0]
             out.append({"hook_id": f"H{len(out) + 1}", "signal_id": sid, "bucket": s["bucket"],
                         "evidence_id": e["id"], "text": e["quote"][:250], "verified": e["verified"]})
     return out

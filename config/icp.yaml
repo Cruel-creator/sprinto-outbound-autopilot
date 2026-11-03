@@ -1,6 +1,8 @@
 # Sprinto ICP rubric v1 (source + reasoning: .planning/research/FEATURES.md Part A).
 # Python scores it: each signal's points = its bucket's value; a signal's weight = its max bucket.
 # Positive points only count with cited evidence. "unknown" scores 0 but widens the [lo, hi] bounds.
+# external: the website staying silent proves nothing (thin signal), so "absent" also needs cited evidence,
+# otherwise the signal stays unknown and the agent loop goes looking.
 version: 1
 threshold: {qualify: 60, priority: 75, nurture: 45}
 agent: {max_tool_calls: 4, max_searches: 2, wall_clock_s: 120}
@@ -23,10 +25,12 @@ signals:
     buckets: {b2b_saas_devtool_or_ai: 10, b2b_tech_enabled_fintech_health_hr: 6, mixed_b2b2c: 3, b2c: 0}
   A2_stage:
     block: A
+    external: true
     detect: "Funding round/stage/amount (prefer dated sources)"
     buckets: {series_a_to_c: 10, seed_top_tier_or_yc_or_3m_plus: 6, seed_other_or_bootstrapped_with_traction: 4, series_d_plus: 2, none_found: 0}
   A3_headcount:
     block: A
+    external: true
     detect: "About/careers 'we are N people', LinkedIn size bucket"
     buckets: {from_30_to_300: 10, from_15_to_29_or_301_to_600: 6, from_8_to_14_or_601_to_1500: 3, other: 0}
   # B. Upmarket pull (25)
@@ -57,10 +61,12 @@ signals:
     buckets: {explicit_in_progress: 5, indirect_hint: 2, none: 0}
   C3_security_hiring:
     block: C
+    external: true
     detect: "Careers/ATS: GRC, compliance, security engineer, Head of Security, CISO; JD mentions SOC 2/ISO"
     buckets: {dedicated_grc_or_compliance_role: 8, security_role_mentions_soc2_iso: 6, generic_security_role: 3, none: 0}
   C4_recent_funding:
     block: C
+    external: true
     detect: "Funding announced recently (date it)"
     buckets: {within_6_months: 5, within_7_to_12_months: 3, within_13_to_24_months: 1, older_or_none: 0}
   C5_geo_expansion:

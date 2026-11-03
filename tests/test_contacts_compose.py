@@ -80,7 +80,12 @@ def _trace(tmp_path):
 
 def test_hooks_follow_priority_and_need_points(tmp_path):
     hk = compose.hooks(QUAL, _trace(tmp_path))
-    assert [h["signal_id"] for h in hk] == ["C1_certification_gap", "B1_enterprise_motion"]
+    assert [h["signal_id"] for h in hk] == ["B1_enterprise_motion"]   # C1 cites only a fetch result: not a hook
+    t = _trace(tmp_path)
+    t.add_evidence("https://acme.com/", "Built for banks; security docs on request", True, "extract")   # E3
+    qual = {"signals": [dict(s, evidence_ids=["E1", "E3"]) if s["signal_id"] == "C1_certification_gap" else s
+                        for s in QUAL["signals"]]}
+    assert [h["signal_id"] for h in compose.hooks(qual, t)] == ["C1_certification_gap", "B1_enterprise_motion"]
 
 
 def test_pains_drop_uncited(tmp_path):
@@ -106,4 +111,26 @@ def test_draft_adds_greeting_signoff_and_regenerates(tmp_path):
     assert out["regenerated"] and out["validator_errors"] == []
     assert out["text"].startswith("Hi raj,\n\n")                     # first name kept verbatim, never .title()
     assert out["text"].endswith("Asha\nGrowth Lead, Sprinto\n(Not relevant? Tell me and I'll stop.)")
-    assert out["hook"]["signal_id"] == "C1_certification_gap"
+    assert out["hook"]["signal_id"] == "B1_enterprise_motion"
+
+
+@respx.mock
+def test_leader_fallback_uses_only_names_in_search_text(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from pipeline.contacts import HUNTER_FINDER, find_contact, leaders
+    from pipeline.models import Leader, Leaders
+    from pipeline.trace import Trace
+    monkeypatch.setattr(contacts, "CSV_PATH", tmp_path / "none.csv")
+    respx.get(contacts.HUNTER_SEARCH).mock(return_value=httpx.Response(200, json={"data": {"emails": [
+        {"value": "x@acme.com", "first_name": "Sid", "last_name": "B", "position": None}]}}))
+    finder = respx.get(HUNTER_FINDER).mock(return_value=httpx.Response(200, json={"data": {"email": "maya@acme.com",
+                                                                                          "score": 91}}))
+    llm = SimpleNamespace(
+        grounded=lambda p, trace=None: {"text": "Acme was founded by Maya Rao (CEO).", "sources": [], "queries": []},
+        json=lambda schema, p, **kw: Leaders(leaders=[Leader(first_name="Maya", last_name="Rao", title="Co-founder & CEO"),
+                                                      Leader(first_name="Ghost", last_name="Person", title="CTO")]))
+    t, http = Trace("acme.com", out_dir=tmp_path), httpx.Client()
+    c = find_contact("acme.com", None, "k", http, t, lookup=lambda: leaders("Acme", "acme.com", "k", http, llm, t))
+    assert c["chosen"]["email"] == "maya@acme.com" and "email-finder" in c["chosen"]["source"]
+    assert finder.call_count == 1          # the invented "Ghost Person" is never looked up
+    assert "Email Finder" in c["fallback"]
