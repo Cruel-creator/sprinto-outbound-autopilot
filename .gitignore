@@ -1,0 +1,14 @@
+# secrets
+.env
+.env.*
+!.env.example
+# runtime artifacts
+/cache/
+/out/
+# real contact data (commit contacts.example.csv instead)
+/contacts.csv
+# python / tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
