@@ -1,0 +1,82 @@
+# Sprinto ICP rubric v1 (source + reasoning: .planning/research/FEATURES.md Part A).
+# Python scores it: each signal's points = its bucket's value; a signal's weight = its max bucket.
+# Positive points only count with cited evidence. "unknown" scores 0 but widens the [lo, hi] bounds.
+version: 1
+threshold: {qualify: 60, priority: 75, nurture: 45}
+agent: {max_tool_calls: 4, max_searches: 2, wall_clock_s: 120}
+
+hard_disqualifiers:
+  not_software: "No software product/platform (D2C brand, services/agency, consultancy, retail, manufacturing, media)."
+  existing_sprinto_customer: "Trust/security page hosted by Sprinto (*.trust.site) or names Sprinto as its compliance partner."
+  too_large: "Headcount >= 2000, or a public mega-cap / Fortune-500-scale brand."
+  too_small: "Fewer than 8 people AND no paying customers, pricing or logos visible."
+
+caps:
+  no_upmarket_pull: {block: B, below: 8, cap: 55}   # a cert gap with no enterprise buyers is not a trigger
+  fully_certified: {signal: C1, bucket: soc2_type2_plus_iso27001, cap: 40, tag: switch_or_expand_candidate}
+
+signals:
+  # A. Firmographic (30)
+  A1_b2b_software:
+    block: A
+    detect: "Pricing/demo/login/API docs, 'platform', customers are businesses"
+    buckets: {b2b_saas_devtool_or_ai: 10, b2b_tech_enabled_fintech_health_hr: 6, mixed_b2b2c: 3, b2c: 0}
+  A2_stage:
+    block: A
+    detect: "Funding round/stage/amount (prefer dated sources)"
+    buckets: {series_a_to_c: 10, seed_top_tier_or_yc_or_3m_plus: 6, seed_other_or_bootstrapped_with_traction: 4, series_d_plus: 2, none_found: 0}
+  A3_headcount:
+    block: A
+    detect: "About/careers 'we are N people', LinkedIn size bucket"
+    buckets: {from_30_to_300: 10, from_15_to_29_or_301_to_600: 6, from_8_to_14_or_601_to_1500: 3, other: 0}
+  # B. Upmarket pull (25)
+  B1_enterprise_motion:
+    block: B
+    detect: "'Enterprise' tier, 'Contact sales', SSO/SAML/SCIM/audit logs/RBAC as plan features"
+    buckets: {enterprise_tier_plus_contact_sales: 8, one_of_them: 5, demo_only: 2, self_serve_only: 0}
+  B2_enterprise_logos:
+    block: B
+    detect: "Named large/regulated customers (banks, F500, healthcare, public sector); logo alt text/filenames"
+    buckets: {three_plus_enterprise_logos: 8, one_or_two: 5, only_smb_or_startup_logos: 1, none_visible: 0}
+  B3_sensitive_data:
+    block: B
+    detect: "Handles PII/PHI/financial/HR/LLM-prompt data; sells to BFSI/healthcare/gov; data residency, in-VPC, on-prem"
+    buckets: {strong: 5, moderate: 3, weak: 1, none: 0}
+  B4_procurement_markers:
+    block: B
+    detect: "DPA, BAA, subprocessor list, 'request security docs', security review, self-hosted/air-gapped"
+    buckets: {two_plus_markers: 4, one_marker: 2, none: 0}
+  # C. Compliance trigger (35)
+  C1_certification_gap:
+    block: C
+    detect: "/security /trust /compliance pages + footer badges. Only the company's OWN certifications count (not 'hosted on SOC 2 compliant AWS'). A blocked page is unknown, not absent."
+    buckets: {no_trust_page_and_no_certs: 12, trust_page_without_soc2_or_iso: 12, soc2_type1_only_or_iso_only: 8, soc2_type2_only: 6, soc2_type2_plus_iso27001: 0}
+  C2_in_flight_statement:
+    block: C
+    detect: "'SOC 2 in progress', 'pursuing ISO 27001', 'audit underway', 'readiness'"
+    buckets: {explicit_in_progress: 5, indirect_hint: 2, none: 0}
+  C3_security_hiring:
+    block: C
+    detect: "Careers/ATS: GRC, compliance, security engineer, Head of Security, CISO; JD mentions SOC 2/ISO"
+    buckets: {dedicated_grc_or_compliance_role: 8, security_role_mentions_soc2_iso: 6, generic_security_role: 3, none: 0}
+  C4_recent_funding:
+    block: C
+    detect: "Funding announced recently (date it)"
+    buckets: {within_6_months: 5, within_7_to_12_months: 3, within_13_to_24_months: 1, older_or_none: 0}
+  C5_geo_expansion:
+    block: C
+    detect: "Non-US/EU HQ selling to US/EU; EU customers/offices; GDPR mentioned without certification; data residency"
+    buckets: {explicit_expansion_signal: 5, eu_or_us_customers_plus_gdpr_mention: 3, weak: 1, none: 0}
+  # D. Fit modifiers (10)
+  D1_stack_integrates:
+    block: D
+    detect: "Cloud-native on AWS/GCP/Azure, GitHub/GitLab, Okta/Google Workspace, Jira"
+    buckets: {clear: 4, partial: 2, none: 0}
+  D2_multi_framework_pull:
+    block: D
+    detect: "HIPAA (health), PCI (payments), GDPR/ISO 27701 (EU), public sector"
+    buckets: {two_plus_frameworks: 3, one_framework: 2, none: 0}
+  D3_recent_enterprise_win:
+    block: D
+    detect: "Recent new enterprise customer, marketplace listing, big partnership"
+    buckets: {found: 3, none: 0}
