@@ -1,0 +1,7 @@
+# Sprinto facts the drafter may use (and nothing else about Sprinto)
+- Sprinto automates SOC 2, ISO 27001, GDPR and HIPAA compliance: evidence collection, controls monitoring and audit prep. (sprinto.com)
+- Trusted by 4,000+ companies worldwide. (sprinto.com/customers)
+- GeoIQ got SOC 2 and ISO 27001 in 3 months with Sprinto. (sprinto.com customer stories)
+- StepSecurity got SOC 2 in 4 weeks with Sprinto. (sprinto.com customer stories)
+- 160+ integrations across cloud, HR, IT and engineering tools pull audit evidence automatically. (sprinto.com)
+- One platform covers multiple frameworks, so a second framework reuses existing controls. (docs.sprinto.com)
