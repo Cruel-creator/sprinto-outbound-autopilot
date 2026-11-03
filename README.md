@@ -1,5 +1,9 @@
 # Sprinto Outbound Autopilot
 
+**Live demo:** https://sprinto-outbound-autopilot.vercel.app
+
+The demo is a read-only snapshot of a real run. Contact emails and inbox addresses are removed, and it cannot run research or send email. To rebuild it, run `python build_demo.py`, which writes `site/`; Vercel serves only `site/`.
+
 Give it a list of domains. Without any decisions from you, it scrapes each site, extracts evidence, qualifies the company against Sprinto's ICP (with an agent loop when data is thin), picks the right decision-maker via Hunter.io, works out two pain points, drafts a personalised email and sends it **to your own inbox** via Resend. Every decision is written to `out/<domain>/report.md` with cited evidence.
 
 ## Setup (Windows, PowerShell)

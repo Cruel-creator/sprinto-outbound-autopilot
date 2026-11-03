@@ -15,3 +15,6 @@ __pycache__/
 /.impeccable/hook.cache.json
 /.impeccable/review/
 /.playwright-cli/
+
+.vercel
+.env*
