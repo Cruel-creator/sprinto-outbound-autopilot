@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "web/style.css"
+        ],
+        "createdAt": "2026-11-03T09:14:09.685Z",
+        "reason": "Claude triage: L91 is the activity timeline's neutral 2px rail (var(--line)), not a colored card accent"
+      },
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "web/index.html"
+        ],
+        "createdAt": "2026-11-03T09:14:09.759Z",
+        "reason": "Claude triage: dot shows only while a pipeline run is in progress (.job.busy, polled from /api/job), i.e. genuinely live state"
+      }
+    ]
+  }
+}
