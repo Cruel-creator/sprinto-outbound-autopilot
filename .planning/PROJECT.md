@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Python CLI pipeline that takes a list of company domains and, with no human decisions in the loop, works out which ones fit Sprinto's ICP. For each fit it picks the right decision-maker, works out their two most likely compliance pain points, writes a personalised cold email to them by name with a specific hook, and sends it via the Gmail API. It replaces the Sprinto Growth Lead's manual 15–20 minutes of research and writing per company, where quality slips by the end of a list of 8–15 companies.
+A Python CLI pipeline that takes a list of company domains and, with no human decisions in the loop, works out which ones fit Sprinto's ICP. For each fit it picks the right decision-maker, works out their two most likely compliance pain points, writes a personalised cold email to them by name with a specific hook, and sends it through the Resend API so it lands in the user's own Gmail inbox. It replaces the Sprinto Growth Lead's manual 15–20 minutes of research and writing per company, where quality slips by the end of a list of 8–15 companies.
 
 Built for MESA PGP Cohort 4, Term 2, AI Case 2 ("Cold Outreach, at Scale"), session on 3 Nov 2026 (1.5 hours).
 
@@ -32,7 +32,8 @@ Run it on a list of domains and a personalised email that a human would actually
 - [ ] Step 4, PoC: choose the right decision-maker from a hand-filled `contacts.csv` (sourced manually from Apollo), with role-based selection logic and a stated reason
 - [ ] Step 5, Pain points: the two most likely pain points for that specific person and role, grounded in company evidence
 - [ ] Step 6, Draft: a personalised email addressed by name, under 120 words, with one specific hook from their own signals, one soft CTA, signed as Sprinto's Growth Lead
-- [ ] Step 7, Send: send via the Gmail API (OAuth) with `to:` hardcoded to the user's own address
+- [ ] Step 7, Send: send via the Resend API (`RESEND_API_KEY`, from `onboarding@resend.dev` unless a domain is verified) with `to:` hardcoded to the user's own address, which must be the Resend account's email when sending from `onboarding@resend.dev`
+- [ ] Send fallback: each `report.md` includes an "Open in Gmail" compose link (pre-filled to, subject and body) in case live sending fails
 - [ ] Decision trail: for each company, a JSON trace of every step's input and output plus a readable `report.md` that cites the evidence behind each decision
 - [ ] Researched ICP definition ("right companies") written down and used by the qualifier
 - [ ] Curated test list of about 8–10 real domains: some should qualify and some shouldn't, to show the filter works
@@ -42,6 +43,7 @@ Run it on a list of domains and a personalised email that a human would actually
 - Sending to real prospects. The case requires `to:` to be the user's own address.
 - Apollo API automation. The free tier is web UI only, so contacts are hand-filled into `contacts.csv` instead.
 - Hunter.io. Apollo was chosen.
+- Gmail API (OAuth). Replaced by Resend: no Cloud Console or OAuth setup, and no risk of a school Workspace admin blocking third-party apps.
 - Web UI or dashboard. A CLI is fastest to build in 1.5 hours and is enough for "repeatable".
 - Follow-up sequences, reply tracking, CRM sync. Beyond a first-touch email.
 - A dry-run mode. The user chose "always send", and sends are safe because they only go to the user's own inbox.
@@ -51,17 +53,17 @@ Run it on a list of domains and a personalised email that a human would actually
 - **The ICP from the brief:** SaaS companies, typically Series A–C, either preparing for a compliance audit or under pressure from enterprise customers to get certified. "Right companies" must be refined through research. Likely signals: a trust or security page without a certification badge, an enterprise plan or "Contact sales", big-logo customers, compliance or security hiring, recent funding, a mention of an upcoming SOC 2 audit, a move into the EU or US market (GDPR).
 - **Likely PoC roles:** CTO, VP Engineering, Head of Security or InfoSec, Compliance or GRC lead, and at smaller companies the CEO or co-founder.
 - **Gemini** handles extraction, qualification reasoning, pain-point inference and drafting. Google Search grounding is available on the same API key.
-- **Gmail API** needs a Google Cloud OAuth client (`credentials.json`) and a one-time browser consent that writes `token.json`.
+- **Resend** sends email with one API key over HTTPS (`resend` Python SDK, or a plain POST to `https://api.resend.com/emails`). The free tier allows 100 emails a day. Sending from `onboarding@resend.dev` only delivers to the Resend account owner's address, which suits this project because `to:` is always the user.
 - **"Done" according to the brief:** a personalised email lands in the inbox, addressed to a real person by name, with a hook a human would respond to. The builder can defend why this company qualified, why this person, and why the email was written this way.
 
 ## Constraints
 
 - **Timeline**: Live session on 3 Nov 2026, 1.5 hours. The walking skeleton must deliver an email to the inbox early.
-- **Tech stack**: Python 3, `google-genai` (Gemini), Gmail API (`google-api-python-client`, `google-auth-oauthlib`), `httpx`/`requests` plus BeautifulSoup for scraping. Chosen for the quickest path to the Google APIs.
+- **Tech stack**: Python 3.12, `google-genai` (Gemini), Resend for sending (`resend` SDK or `httpx` POST), `httpx` plus BeautifulSoup for scraping. Chosen for minimal setup and the quickest path to a working send.
 - **LLM**: Google Gemini API only, the user's key in `.env`.
 - **PoC source**: Apollo by hand, then `contacts.csv`. No contact API.
 - **Email recipient**: Always the user's own address, from `.env`. Never a prospect.
-- **Secrets**: API keys, `credentials.json` and `token.json` are never committed (`.gitignore`).
+- **Secrets**: `.env` (Gemini and Resend keys) and the real `contacts.csv` are never committed (`.gitignore`).
 - **Autonomy**: No interactive prompts during a run. The pipeline must decide every step itself.
 
 ## Key Decisions
@@ -71,7 +73,8 @@ Run it on a list of domains and a personalised email that a human would actually
 | Python CLI (`python run.py domains.txt`) | Fastest to build, repeatable, easy to demo | — Pending |
 | Apollo by hand, then `contacts.csv` | Apollo's free tier has no API; keeps the run fully automatic once filled | — Pending |
 | Gemini for every LLM step | User has a Gemini API key; Search grounding gives the agent loop web reach | — Pending |
-| Gmail API (OAuth) for sending | Required by the brief; the user chose it over SMTP | — Pending |
+| Resend API for sending, not the Gmail API | One API key and no OAuth, so setup is fast and nothing can be blocked by a school admin; the email still lands in the user's Gmail inbox. A deliberate departure from the brief's "via Gmail" wording | — Pending |
+| "Open in Gmail" compose link in every report | Safety net for the live demo if the send fails | — Pending |
 | Scored rubric (0–100) plus threshold to qualify | Weighted signals with cited evidence make the decision defensible | — Pending |
 | Three agent-loop tools: site pages, Google Search grounding, job postings | Covers compliance, enterprise and hiring signals that the homepage alone misses | — Pending |
 | JSON trace plus `report.md` per company | "Defend every decision" needs a lasting, readable evidence trail | — Pending |
