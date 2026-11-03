@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Outbound — Sprinto</title>
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="/vendor/fonts/clash-grotesk-300.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/vendor/fonts/switzer-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/vendor/lenis.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <header class="bar">
+    <a class="mark" href="#" data-view="home" aria-label="Outbound home">Outbound<sup>Sprinto</sup></a>
+    <nav class="nav" aria-label="Main">
+      <button class="nav-link on" data-view="home">Home</button>
+      <button class="nav-link" data-view="accounts">Accounts <span id="n-accounts"></span></button>
+      <button class="nav-link" data-view="pipeline">Pipeline</button>
+    </nav>
+    <form id="run-form" class="run" autocomplete="off">
+      <label class="sr" for="run-input">Domains to research</label>
+      <input id="run-input" placeholder="Research a domain">
+      <button type="submit" id="run-btn" class="run-go" aria-label="Research and send"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12 M11 5l5 5-5 5"/></svg></button>
+    </form>
+    <div id="job" class="job" role="status" aria-live="polite"></div>
+  </header>
+
+  <main id="content">
+    <section id="view-home" class="view">
+      <section class="ch hero" id="ch-hero" aria-labelledby="headline">
+        <div id="fog" class="fog" aria-hidden="true"></div>
+        <div class="hero-in">
+          <h1 id="headline">&nbsp;</h1>
+          <ul id="hero-facts" class="facts"></ul>
+        </div>
+        <div class="cue" aria-hidden="true"><span></span>Scroll</div>
+      </section>
+
+      <section class="ch ch-time" id="ch-time" aria-labelledby="h-time">
+        <div class="ch-in">
+          <h2 class="ch-title" id="h-time">Time per company</h2>
+          <div class="clock" id="clock">00:00</div>
+          <div class="clock-meta"><span id="clock-who">By hand</span><span id="clock-note"></span></div>
+          <div class="rule-bar"><span id="clock-bar"></span></div>
+        </div>
+      </section>
+
+      <section class="ch ch-loop" id="ch-loop" aria-labelledby="h-loop">
+        <div class="ch-in">
+          <div class="ch-head"><h2 class="ch-title" id="h-loop">The agent loop</h2><p class="ch-big" id="loop-big"></p></div>
+          <div id="dumbbell"></div>
+        </div>
+      </section>
+
+      <section class="ch ch-funnel" id="ch-funnel" aria-labelledby="h-funnel">
+        <div class="ch-in">
+          <div class="ch-head"><h2 class="ch-title" id="h-funnel">Funnel</h2><p class="ch-big" id="funnel-big"></p></div>
+          <div id="funnel"></div>
+        </div>
+      </section>
+
+      <section class="ch ch-mail" id="ch-mail" aria-labelledby="h-mail">
+        <div class="ch-in">
+          <div class="ch-head"><h2 class="ch-title" id="h-mail">Emails</h2><p class="ch-big" id="mail-big"></p></div>
+          <div id="stack" class="stack"></div>
+        </div>
+      </section>
+
+      <section class="ch ch-queue" id="ch-queue" aria-labelledby="h-queue">
+        <div class="ch-in">
+          <div class="ch-head"><h2 class="ch-title" id="h-queue">Needs you</h2><p class="ch-big" id="queue-big"></p></div>
+          <div id="queue"></div>
+          <button class="link-cta" data-view="accounts">All accounts <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12 M11 5l5 5-5 5"/></svg></button>
+        </div>
+      </section>
+
+      <nav class="index" aria-label="Chapters">
+        <a href="#ch-hero" data-ch="ch-hero">Overview</a><a href="#ch-time" data-ch="ch-time">Time</a><a href="#ch-loop" data-ch="ch-loop">Agent loop</a>
+        <a href="#ch-funnel" data-ch="ch-funnel">Funnel</a><a href="#ch-mail" data-ch="ch-mail">Emails</a><a href="#ch-queue" data-ch="ch-queue">Needs you</a>
+      </nav>
+    </section>
+
+    <section id="view-accounts" class="view page" hidden>
+      <div class="page-head"><h1>Accounts</h1><input id="search" type="search" placeholder="Search" aria-label="Search accounts"></div>
+      <div id="filters" class="filters" role="tablist" aria-label="Filter accounts"></div>
+      <div id="table" class="table-wrap"></div>
+    </section>
+
+    <section id="view-pipeline" class="view page" hidden>
+      <div class="page-head"><h1>Pipeline</h1></div>
+      <div id="board" class="board"></div>
+    </section>
+  </main>
+
+  <div id="scrim" class="scrim" hidden></div>
+  <aside id="drawer" class="drawer" hidden aria-labelledby="d-name" role="dialog" aria-modal="true">
+    <header class="drawer-head">
+      <div><h2 id="d-name"></h2><a id="d-domain" target="_blank" rel="noopener noreferrer"></a><p id="d-liner"></p></div>
+      <button id="d-close" class="icon-btn" aria-label="Close account"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
+    </header>
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-pane="overview">Company</button><button class="tab" data-pane="contact">Person</button>
+      <button class="tab" data-pane="email">Email</button><button class="tab" data-pane="activity">Activity</button>
+    </div>
+    <div id="d-body" class="drawer-body" data-lenis-prevent></div>
+    <form id="review" class="review">
+      <div class="review-grid">
+        <label>Stage<select name="stage"></select></label>
+        <label>Right pick<select name="lead_agrees"><option value="">–</option><option value="y">Yes</option><option value="n">No</option></select></label>
+        <label>Edits<select name="edit_level"><option value="">–</option><option value="none">None</option><option value="light">Light</option><option value="rewrite">Rewrite</option></select></label>
+        <label>Replied<select name="replied"><option value="">–</option><option value="y">Yes</option><option value="n">No</option></select></label>
+      </div>
+      <label>Notes<textarea name="notes" rows="2" maxlength="500"></textarea></label>
+      <div class="review-foot"><button type="submit" class="pill-btn">Save</button><span id="saved" role="status"></span></div>
+    </form>
+  </aside>
+
+  <script src="/vendor/gsap.min.js"></script>
+  <script src="/vendor/ScrollTrigger.min.js"></script>
+  <script src="/vendor/SplitText.min.js"></script>
+  <script src="/vendor/lenis.min.js"></script>
+  <script src="/vendor/three.min.js"></script>
+  <script src="/vendor/vanta.fog.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

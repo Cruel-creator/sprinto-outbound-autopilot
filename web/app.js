@@ -36,7 +36,15 @@ function arrow() {
   const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", "M4 10h12 M11 5l5 5-5 5"); s.append(p);
   return s;
 }
+const DEMO = !["127.0.0.1", "localhost"].includes(location.hostname);   // public deploy: a scrubbed, read-only snapshot
+const IDLE = { running: false, queue: [], current: null, done: [], error: null };
+if (DEMO) document.documentElement.classList.add("demo");
 async function api(path, body) {
+  if (DEMO) {
+    if (body) throw new Error("Read-only demo: run it locally to research and send");
+    if (path === "/api/job") return IDLE;
+    path = path === "/api/accounts" ? "/data/accounts.json" : `${path.replace("/api/account/", "/data/account/")}.json`;
+  }
   const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || r.statusText);
@@ -227,7 +235,7 @@ function paneContact(t) {
   if (!c) return [el("p", { class: "note" }, "Only qualified companies get a contact search.")];
   const w = c.chosen;
   return [
-    w ? el("div", { class: "person" }, el("b", {}, `${w.first_name} ${w.last_name}`), el("span", {}, w.position), el("span", {}, `${w.email} · ${w.source}`),
+    w ? el("div", { class: "person" }, el("b", {}, `${w.first_name} ${w.last_name}`), el("span", {}, w.position), el("span", {}, [w.email, w.source].filter(Boolean).join(" · ")),
       w.linkedin && el("a", { href: w.linkedin, target: "_blank", rel: "noopener noreferrer" }, "LinkedIn")) : el("p", { class: "note ember" }, "No eligible decision-maker. Add one to contacts.csv and re-run."),
     el("div", { class: "sec" }, el("h3", {}, "Why this person"), el("p", { class: "note" }, c.reason), c.fallback && el("p", { class: "note" }, c.fallback)),
     t.steps.pains && el("div", { class: "sec" }, el("h3", {}, "Likely pain points"), t.steps.pains.map((p) => el("p", { class: "note" }, p.text, p.evidence_ids.map((i) => evLine(t, i))))),
@@ -404,7 +412,8 @@ function render() {
 async function load() {
   const data = await api("/api/accounts");
   Object.assign(STATE, { accounts: data.accounts, stages: data.stages });
-  showJob(data.job);
+  showJob(data.job || IDLE);
+  if (DEMO) $("#job").textContent = "Read-only demo · contact details hidden";
   render();
   if (STATE.view === "home") { await document.fonts.ready; setupMotion(); startFog(); }
 }

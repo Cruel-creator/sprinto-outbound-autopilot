@@ -13,3 +13,5 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 /.impeccable/hook.cache.json
+/.impeccable/review/
+/.playwright-cli/
