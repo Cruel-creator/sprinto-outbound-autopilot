@@ -1,0 +1,11 @@
+# domain                 expected verdict (from .planning/research/FEATURES.md Part D)
+getmaxim.ai              # QUALIFY: seed, enterprise tier, no SOC 2/ISO/trust page
+bolna.ai                 # QUALIFY: seed Jan 2026, enterprise plans, named logos, no certification
+nurix.ai                 # QUALIFY/NURTURE: enterprise, BAA/DPA, unlabeled badges -> agent loop
+greptile.com             # QUALIFY (marginal): Series A, SOC 2 only -> ISO 27001/GDPR expansion
+gushwork.ai              # REJECT/NURTURE: SMB buyers -> no_upmarket_pull cap
+salesforce.com           # DISQUALIFIED: too_large
+rocketlane.com           # DISQUALIFIED: Sprinto-hosted trust center (existing customer)
+hyperbound.ai            # REJECT: SOC 2 Type II + ISO 27001 (fully_certified cap)
+atomicwork.com           # REJECT: fully certified
+wakefit.co               # DISQUALIFIED: not_software (D2C)
