@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Outbound CRM</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo">S</span><div><strong>Outbound CRM</strong><small>Sprinto Growth</small></div></div>
+    <form id="run-form" class="run">
+      <input id="run-input" placeholder="Add domains to research, e.g. acme.com, beta.io" autocomplete="off">
+      <button type="submit" id="run-btn">Research &amp; send</button>
+    </form>
+    <div id="job" class="job" aria-live="polite"></div>
+  </header>
+
+  <section id="kpis" class="kpis"></section>
+
+  <nav class="toolbar">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-view="board">Pipeline</button>
+      <button class="tab" data-view="table">Accounts</button>
+    </div>
+    <input id="search" type="search" placeholder="Search accounts or contacts">
+  </nav>
+
+  <main>
+    <div id="board" class="board"></div>
+    <div id="table" class="table-wrap" hidden></div>
+  </main>
+
+  <aside id="drawer" class="drawer" hidden>
+    <div class="drawer-head">
+      <div><h2 id="d-name"></h2><a id="d-domain" target="_blank" rel="noopener noreferrer"></a><p id="d-liner"></p></div>
+      <button id="d-close" class="ghost" aria-label="Close">✕</button>
+    </div>
+    <div class="tabs d-tabs" role="tablist">
+      <button class="tab active" data-pane="overview">Overview</button>
+      <button class="tab" data-pane="contact">Contact</button>
+      <button class="tab" data-pane="email">Email</button>
+      <button class="tab" data-pane="activity">Activity</button>
+    </div>
+    <div id="d-body" class="drawer-body"></div>
+    <form id="review" class="review">
+      <h3>Your review</h3>
+      <div class="grid">
+        <label>Stage<select name="stage"></select></label>
+        <label>Right company &amp; person?<select name="lead_agrees"><option value="">–</option><option>y</option><option>n</option></select></label>
+        <label>Edits needed<select name="edit_level"><option value="">–</option><option>none</option><option>light</option><option>rewrite</option></select></label>
+        <label>Replied<select name="replied"><option value="">–</option><option>y</option><option>n</option></select></label>
+      </div>
+      <label>Notes<textarea name="notes" rows="2" maxlength="500"></textarea></label>
+      <button type="submit">Save</button> <span id="saved" class="muted"></span>
+    </form>
+  </aside>
+  <div id="scrim" class="scrim" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>

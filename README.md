@@ -33,7 +33,24 @@ Outputs:
 - `out/<domain>/report.md`: why this company, why this person, why this email, plus an "Open in Gmail" fallback link to yourself.
 - `out/<domain>/trace.json`: every step, the evidence ledger, and each model call.
 
-Every company ends with one status: `sent`, `not_qualified`, `insufficient_data`, `no_contact` or `failed`.
+Every company ends with one status: `sent`, `held`, `not_qualified`, `insufficient_data`, `no_contact` or `failed`. `held` means the draft never passed the checks, so it was not sent. This applies the kill criterion: an email with claims that can't be checked never goes out.
+
+## CRM
+
+```powershell
+.\.venv\Scripts\python.exe app.py      # then open http://127.0.0.1:8765
+```
+
+A local CRM over the same data. It listens on localhost only, uses no extra dependencies, and treats scraped text as text, never as HTML.
+- **Pipeline board:** accounts sit in lanes: Qualified, Needs review, Contacted, Replied, Meeting, Won, Lost, Needs data, Not a fit.
+- **KPIs:** compared with the manual baseline.
+- **Account drawer:**
+  - fixed-pipeline vs agent-loop verdict, with evidence for each signal
+  - contact and the reason they were chosen
+  - email, reviewer scores and critique
+  - activity timeline
+- **Review form:** sets the stage and the `review.csv` columns.
+- **"Research & send" box:** runs new domains in the background.
 
 ## Before the build
 
@@ -49,7 +66,7 @@ Every company ends with one status: `sent`, `not_qualified`, `insufficient_data`
 | 3 Agent loop | `pipeline/agent.py`, `pipeline/tools.py` | While the 60-point bar sits inside the score bounds, it picks `fetch_page`, `web_research` (Google Search grounding) or `job_postings` (Greenhouse, Lever, Ashby). Limits: 4 tool calls, 2 searches, no repeats, 120 s. |
 | 4 PoC | `pipeline/contacts.py` | Hunter domain search, **only for qualified companies**, cached. Role rules: up to 50 staff, the founder/CEO; 51–200, a security/GRC lead, else the CTO; over 200, a security/GRC lead. Sales, marketing and HR titles are dropped. An optional `contacts.csv` overrides Hunter. |
 | 5 Pains | `pipeline/compose.py` | Two pain points for that persona, each citing evidence. A SOC 2-only company gets an ISO 27001/GDPR expansion angle. |
-| 6 Draft | `pipeline/compose.py` | One hook picked from verified evidence. Python enforces: at most 110 words, one question, no unbacked numbers, no banned phrases, proof lines only from `sprinto_facts.md`. One regeneration if the checks fail. |
+| 6 Draft | `pipeline/compose.py` | The hook quotes real page text, not a fetch result. The opening combines what they sell with the hook as the reason to write now. Python checks: <br>• the first sentence uses a term from their product <br>• at most 110 words and one question <br>• no unbacked numbers, including spelled-out ones <br>• at most one hedge word and no framework lists <br>• the subject contains a word from the hook <br>• "recent" only with funding evidence dated within 6 months <br>• no banned phrases <br>A **reviewer pass** then scores specificity, relevance and reply likelihood from 0 to 10, and anything under 7 is rewritten with the critique. Up to 4 drafts; the best passing one is kept. |
 | 7 Send | `pipeline/send.py` | Resend. `send_email()` has **no recipient parameter**, so it always sends to `TO_EMAIL`. The intended prospect appears in a footer. |
 
 Planning, research and requirements are in `.planning/`.

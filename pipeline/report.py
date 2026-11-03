@@ -8,9 +8,10 @@ from urllib.parse import quote
 
 from pipeline.qualify import load_icp, verdict
 
-REVIEW_COLS = ["domain", "status", "verdict", "contact", "subject", "sent_at",
-               "lead_agrees", "edit_level", "replied", "notes"]
-HUMAN_COLS = REVIEW_COLS[6:]   # filled in by the Growth Lead, never overwritten
+REVIEW_COLS = ["domain", "status", "verdict", "contact", "subject", "sent_at", "ai_score",
+               "stage", "lead_agrees", "edit_level", "replied", "notes"]
+MACHINE_COLS, HUMAN_COLS = REVIEW_COLS[:7], REVIEW_COLS[7:]   # human columns are never overwritten
+STAGES = ["contacted", "replied", "meeting", "won", "lost"]   # set by the Growth Lead in the CRM
 
 
 def first_pass(q: dict, icp: dict) -> tuple[str, int]:
@@ -78,7 +79,11 @@ def render(data: dict, to_email: str, icp: dict | None = None) -> str:
         lines.append(f"Hook {d['hook_id']}: {h['signal_id']}={h['bucket']}, {_ev(data, h['evidence_id'])}" if h
                      else f"Hook {d['hook_id']} not in candidates.")
         lines.append(f"Words: {d['word_count']}. Validator: {'; '.join(d['validator_errors']) or 'passed'}."
-                     + (" (regenerated once)" if d["regenerated"] else ""))
+                     + (f" ({len(d.get('attempts', [])) or 2} drafts)" if d["regenerated"] else ""))
+        if d.get("review"):
+            rv = d["review"]
+            lines.append(f"Reviewer: **{rv['score']}/10** (specificity {rv['specificity']}, relevance {rv['relevance']}, "
+                         f"reply {rv['reply_likelihood']}). {rv['critique']}")
         lines += ["\n### Email as sent", f"**Subject:** {d['subject']}", "", "```", d["text"], "```",
                   f"\n[Open in Gmail (manual fallback, to yourself)]({gmail_link(to_email, d['subject'], d['text'])})"]
     if "send" in st:
@@ -106,18 +111,37 @@ def row(data: dict, icp: dict) -> dict:
         r["contact"] = f"{who['first_name']} {who['last_name']} ({who['position']})"
     if (st.get("send") or {}).get("id"):
         r.update(subject=st["draft"]["subject"], sent_at=st["send"]["sent_at"])
+    if (st.get("draft") or {}).get("review"):
+        r["ai_score"] = st["draft"]["review"]["score"]
     return r
+
+
+def read_review(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    with path.open(encoding="utf-8", newline="") as f:
+        return {r["domain"]: r for r in csv.DictReader(f)}
+
+
+def update_review(path: Path, domain: str, fields: dict) -> dict:
+    """Save the Growth Lead's columns for one company (used by the CRM app)."""
+    rows = read_review(path)
+    if domain not in rows:
+        raise KeyError(domain)
+    rows[domain].update({k: str(v).strip()[:500] for k, v in fields.items() if k in HUMAN_COLS})
+    with path.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=REVIEW_COLS)
+        w.writeheader()
+        w.writerows({k: r.get(k, "") for k in REVIEW_COLS} for r in rows.values())
+    return rows[domain]
 
 
 def write_review(rows: list[dict], path: Path) -> list[dict]:
     """One row per company for the Growth Lead; their columns survive re-runs."""
-    old = {}
-    if path.exists():
-        with path.open(encoding="utf-8", newline="") as f:
-            old = {r["domain"]: r for r in csv.DictReader(f)}
+    old = read_review(path)
     for r in rows:
         keep = old.get(r["domain"], {})
-        old[r["domain"]] = {**{k: r.get(k) or "" for k in REVIEW_COLS[:6]}, **{k: keep.get(k, "") for k in HUMAN_COLS}}
+        old[r["domain"]] = {**{k: r.get(k) or "" for k in MACHINE_COLS}, **{k: keep.get(k, "") for k in HUMAN_COLS}}
     with path.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=REVIEW_COLS)
         w.writeheader()
@@ -139,6 +163,9 @@ def metrics(rows: list[dict], review: list[dict]) -> list[str]:
            f"- Agent loop ran on {len(looped)} thin-signal companies and changed the verdict on {len(changed)}"
            + (f": {', '.join(r['domain'] + ' ' + r['fixed'] + ' -> ' + r['verdict'] for r in changed)}." if changed else "."),
            f"- Gemini calls: {sum(r.get('llm_calls', 0) for r in rows)}."]
+    scores = [r["ai_score"] for r in rows if r.get("ai_score") is not None]
+    if scores:
+        out.append(f"- Reviewer score: {sum(scores) / len(scores):.1f}/10 average over {len(scores)} emails.")
     done = [r for r in review if r["edit_level"].strip()]
     out.append("\n## Growth Lead review (out/review.csv)")
     if not done:

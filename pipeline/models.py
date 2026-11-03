@@ -80,6 +80,13 @@ class Draft(BaseModel):
     body: str                # no greeting, no sign-off (Python adds those)
 
 
+class Review(BaseModel):
+    specificity: int         # 0-10: could this email only have been written to this company?
+    relevance: int           # 0-10: is the pain real for this person's role and product?
+    reply_likelihood: int    # 0-10: would a busy CTO/founder reply?
+    critique: str            # what to change to raise the lowest score
+
+
 class Leader(BaseModel):
     first_name: str
     last_name: str

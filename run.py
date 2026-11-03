@@ -20,13 +20,13 @@ from pipeline.tools import Tools
 from pipeline.trace import OUT, Trace
 
 
+def clean_domain(text: str) -> str:
+    d = text.split("#")[0].strip().lower().removeprefix("https://").removeprefix("http://").strip("/")
+    return d.removeprefix("www.")
+
+
 def read_domains(path: Path) -> list[str]:
-    out = []
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
-        d = line.split("#")[0].strip().lower().removeprefix("https://").removeprefix("http://").strip("/")
-        if d:
-            out.append(d.removeprefix("www."))
-    return out
+    return [d for line in path.read_text(encoding="utf-8-sig").splitlines() if (d := clean_domain(line))]
 
 
 def process(domain: str, s, llm, http, icp: dict, out_dir: Path = OUT) -> dict:
@@ -58,6 +58,10 @@ def process(domain: str, s, llm, http, icp: dict, out_dir: Path = OUT) -> dict:
         p = pains(q, who, t, llm)
         step = "draft"
         d = draft(prof.name, q, who, p, t, llm, s.sender_name)
+        if d["validator_errors"]:   # kill criterion: an email with unchecked claims never goes out
+            t.data["status"] = "held"
+            row["reason"] = "email held for review, failed checks: " + "; ".join(d["validator_errors"])
+            return row
         step = "send"
         res = send_email(d["subject"], d["text"] + footer(who), s, http)
         t.step("send", res)

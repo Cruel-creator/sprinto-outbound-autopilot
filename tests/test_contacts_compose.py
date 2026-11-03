@@ -4,7 +4,7 @@ import httpx
 import respx
 
 from pipeline import compose, contacts
-from pipeline.models import Candidate, Draft, PainPoint, Pains
+from pipeline.models import Candidate, Draft, PainPoint, Pains, Review
 from pipeline.trace import Trace
 
 HUNTER = {"data": {"emails": [
@@ -57,7 +57,7 @@ QUAL = {"signals": [
     {"signal_id": "C4_recent_funding", "bucket": "within_6_months", "points": 0, "evidence_ids": []},
 ]}
 CONTACT = {"first_name": "raj", "position": "Co-founder & CEO"}
-GOOD = Draft(hook_id="H1", subject="SOC 2 at Acme", body=(
+GOOD = Draft(hook_id="H1", subject="Enterprise plan at Acme", body=(
     "Noticed Acme sells an Enterprise plan to banks, but the site does not mention SOC 2 or ISO 27001 yet. "
     "Founders in that spot often see security reviews add weeks to every enterprise deal. "
     "Sprinto helped GeoIQ get SOC 2 and ISO 27001 in 3 months. Worth a 15-minute look?"))
@@ -107,7 +107,7 @@ def test_validator_rules():
 
 def test_draft_adds_greeting_signoff_and_regenerates(tmp_path):
     bad = GOOD.model_copy(update={"body": "Hi Raj, " + GOOD.body})
-    out = compose.draft("Acme", QUAL, CONTACT, [], _trace(tmp_path), FakeLLM(bad, GOOD), "Asha")
+    out = compose.draft("Acme", QUAL, CONTACT, [], _trace(tmp_path), FakeLLM(bad, GOOD, Review(specificity=8, relevance=8, reply_likelihood=8, critique="ok")), "Asha")
     assert out["regenerated"] and out["validator_errors"] == []
     assert out["text"].startswith("Hi raj,\n\n")                     # first name kept verbatim, never .title()
     assert out["text"].endswith("Asha\nGrowth Lead, Sprinto\n(Not relevant? Tell me and I'll stop.)")
@@ -134,3 +134,31 @@ def test_leader_fallback_uses_only_names_in_search_text(tmp_path, monkeypatch):
     assert c["chosen"]["email"] == "maya@acme.com" and "email-finder" in c["chosen"]["source"]
     assert finder.call_count == 1          # the invented "Ghost Person" is never looked up
     assert "Email Finder" in c["fallback"]
+
+
+def test_stricter_checks():
+    hk = {"H1": {"text": "Voice agents for banks"}}
+    weak = Draft(hook_id="H1", subject="Compliance for Acme", body=(
+        "Teams like yours often and typically struggle. Recently raised? Sprinto automates SOC 2, ISO 27001, GDPR."))
+    errs = " | ".join(compose.validate(weak, ["H1"], "Acme", "2 27001", hk, "voice agents for banks", recent_ok=False))
+    for e in ("first sentence must name what they sell", "too much hedging", "do not list frameworks",
+              "subject must use a concrete word", "do not say 'recent'"):
+        assert e in errs, e
+    good = Draft(hook_id="H1", subject="Acme voice agents and SOC 2", body=(
+        "Acme sells voice agents to banks, and banks ask who can hear the calls. Is SOC 2 on the plan this year?"))
+    assert compose.validate(good, ["H1"], "Acme", "2", hk, "voice agents for banks", recent_ok=False) == []
+
+
+def test_low_review_score_triggers_rewrite_and_keeps_best(tmp_path):
+    second = GOOD.model_copy(update={"subject": "Enterprise deals at Acme"})
+    llm = FakeLLM(GOOD, Review(specificity=4, relevance=5, reply_likelihood=3, critique="name their product"),
+                  second, Review(specificity=8, relevance=8, reply_likelihood=7, critique="fine"))
+    out = compose.draft("Acme", QUAL, CONTACT, [], _trace(tmp_path), llm, "Asha")
+    assert out["subject"] == "Enterprise deals at Acme" and out["review"]["score"] == 7.7
+    assert [a["review"]["score"] for a in out["attempts"]] == [4.0, 7.7]
+
+
+def test_spelled_out_numbers_are_flagged():
+    d = Draft(hook_id="H1", subject="Acme voice agents and SOC 2", body=(
+        "Acme raised a twenty-five million dollar round for voice agents. Is SOC 2 on the plan?"))
+    assert any("digits" in e for e in compose.validate(d, ["H1"], "Acme", "2"))
