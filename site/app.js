@@ -4,7 +4,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const MANUAL = 1050;            // 17.5 minutes: midpoint of the case brief's 15-20 minutes by hand
 const BAR = 60;                 // ICP qualify threshold (config/icp.yaml)
 const TARGET = 7;               // reviewer score the drafter aims for (pipeline/compose.py MIN_REVIEW)
-const STATE = { accounts: [], stages: [], view: "home", filter: "all", open: null, pane: "overview", detail: null, intro: false };
+const STATE = { accounts: [], stages: [], view: "home", filter: "all", open: null, pane: "overview", detail: null, intro: false, demo: {} };
 
 const VERDICT = { QUALIFY: "Qualify", PRIORITY: "Priority", INSUFFICIENT_DATA: "Unsure", NURTURE: "Nurture", REJECT: "Reject", DISQUALIFIED: "Out" };
 const GATE = { existing_sprinto_customer: "Already a Sprinto customer", too_large: "Too large", not_software: "Not software", too_small: "Too small" };
@@ -257,10 +257,13 @@ function paneEmail(t, gmail) {
     rv && el("p", { class: "note" }, rv.critique),
     el("div", { class: "sec" }, el("div", { class: "subj" }, d.subject), el("div", { class: "mail" }, d.text),
       gmail && el("a", { href: gmail, target: "_blank", rel: "noopener noreferrer" }, "Open in Gmail, to yourself")),
-    !DEMO && ready && el("div", { class: "redo-actions" }, el("button", { class: "pill-btn solid", id: "send-draft", on: { click: sendDraft } }, "Send to my inbox"),
+    ready && (!DEMO || STATE.demo[t.domain]?.sig) && el("div", { class: "redo-actions" },
+      el("button", { class: "pill-btn solid", id: "send-draft", on: { click: sendDraft } }, DEMO ? "Send to the owner's inbox" : "Send to my inbox"),
       el("span", { class: "note", id: "send-msg", role: "status" })),
-    !DEMO && el("div", { class: "sec redo" }, el("h3", {}, "Redo this email"),
-      el("p", { class: "note" }, "Keeps the research and the contact. Writes a fresh draft, runs every check, and waits for you before sending."),
+    el("div", { class: "sec redo" }, el("h3", {}, "Redo this email"),
+      el("p", { class: "note" }, DEMO
+        ? "Keeps the research and the contact. Writes a fresh draft with Gemini, runs every check, and waits for you before sending. On this public demo the new draft lasts until you reload, and sending goes only to the owner's inbox."
+        : "Keeps the research and the contact. Writes a fresh draft, runs every check, and waits for you before sending."),
       el("label", { class: "redo-label", for: "redo-note" }, "What should change? (optional)"),
       el("textarea", { id: "redo-note", rows: "2", maxlength: "300", placeholder: "e.g. shorter, lead with data residency, a softer question" }),
       el("div", { class: "redo-actions" }, el("button", { class: "pill-btn", id: "redo-btn", disabled: STATE.busy ? "" : null, on: { click: redoEmail } }, "Write a new version"),
@@ -269,7 +272,36 @@ function paneEmail(t, gmail) {
       history.slice().reverse().map((h) => el("p", { class: "note" }, `${h.subject} · ${h.review ? `${h.review.score} / 10` : "failed checks"}`))),
   ];
 }
+async function demoPost(path, body) {   // the live demo's two functions; every other write stays refused
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await r.json().catch(() => ({ error: `${r.status} ${r.statusText}` }));
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+function applyDemo(detail) {   // re-apply a draft written in this visit (the static snapshot never changes)
+  const v = STATE.demo[detail.trace.domain];
+  if (!v) return;
+  const st = detail.trace.steps;
+  st.draft_history = [...(st.draft_history || []), ...v.history];
+  st.draft = v.draft;
+  detail.trace.status = v.status;
+  if (v.sent_at) st.send = { id: "demo", to: "the owner's inbox", sent_at: v.sent_at };
+}
 async function redoEmail() {
+  if (DEMO) {
+    const domain = STATE.open, btn = $("#redo-btn");
+    btn.disabled = true;
+    $("#redo-msg").textContent = "Writing a new version with Gemini. This takes about a minute; keep this panel open.";
+    try {
+      const r = await demoPost("/api/redraft", { domain, note: $("#redo-note").value.trim() });
+      const prev = STATE.demo[domain];
+      const old = prev ? prev.draft : STATE.detail.trace.steps.draft;
+      STATE.demo[domain] = { draft: r.draft, status: r.status, sig: r.sig, ts: r.ts,
+        history: [...(prev?.history || []), ...(old ? [old] : [])] };
+      if (STATE.open === domain) { STATE.detail = await api(`/api/account/${encodeURIComponent(domain)}`); applyDemo(STATE.detail); drawPane(); }
+    } catch (e) { $("#redo-msg").textContent = e.message; btn.disabled = false; }
+    return;
+  }
   try {
     showJob(await api(`/api/account/${encodeURIComponent(STATE.open)}/redraft`, { note: $("#redo-note").value.trim() }));
     $("#redo-btn").disabled = true;
@@ -278,6 +310,15 @@ async function redoEmail() {
 }
 async function sendDraft() {
   $("#send-draft").disabled = true;
+  if (DEMO) {
+    const domain = STATE.open, v = STATE.demo[domain];
+    try {
+      const r = await demoPost("/api/send", { domain, subject: v.draft.subject, text: v.draft.text, ts: v.ts, sig: v.sig });
+      Object.assign(v, { status: "sent", sig: null, sent_at: r.sent_at });
+      STATE.detail = await api(`/api/account/${encodeURIComponent(domain)}`); applyDemo(STATE.detail); drawPane();
+    } catch (e) { $("#send-msg").textContent = e.message; $("#send-draft").disabled = false; }
+    return;
+  }
   try {
     const r = await api(`/api/account/${encodeURIComponent(STATE.open)}/send`, {});
     $("#send-msg").textContent = `Sent to your inbox · ${when(r.sent_at)}`;
@@ -310,7 +351,7 @@ function drawPane() {
 }
 let lastFocus = null;
 async function openAccount(domain, pane = "overview") {
-  try { STATE.detail = await api(`/api/account/${encodeURIComponent(domain)}`); } catch (e) { showJob({ running: false, done: [], error: e.message }); return; }
+  try { STATE.detail = await api(`/api/account/${encodeURIComponent(domain)}`); if (DEMO) applyDemo(STATE.detail); } catch (e) { showJob({ running: false, done: [], error: e.message }); return; }
   STATE.open = domain; STATE.pane = pane; lastFocus = document.activeElement;
   const t = STATE.detail.trace, ext = t.steps.extract || {};
   $("#d-name").textContent = ext.name || domain;
@@ -448,7 +489,7 @@ async function load() {
   const data = await api("/api/accounts");
   Object.assign(STATE, { accounts: data.accounts, stages: data.stages });
   showJob(data.job || IDLE);
-  if (DEMO) $("#job").textContent = "Read-only demo · contact details hidden";
+  if (DEMO) $("#job").textContent = "Live demo · contact details hidden";
   render();
   if (STATE.view === "home") { await document.fonts.ready; setupMotion(); startFog(); }
 }

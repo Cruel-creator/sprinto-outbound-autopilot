@@ -56,6 +56,15 @@
         ],
         "createdAt": "2026-11-03T10:14:42.271Z",
         "reason": "Claude triage: the dashed .bar60 line is the 60-point qualify threshold on the dumbbell chart, a data mark, not decoration"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-11-17T09:49:49.262Z",
+        "reason": "Claude triage: spent direction-round sketch with a fixed 1440x900 frame (overflow hidden by design); the positioned children are static chart labels, not popovers"
       }
     ]
   }

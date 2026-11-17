@@ -1,4 +1,10 @@
-# Upload only the static demo. Everything else (.env, out/, cache/, contacts.csv, source) stays local.
+# Upload the static demo plus the two email functions and the code they import.
+# Everything else (.env, out/, cache/, contacts.csv, the rest of the source) stays local.
 /*
 !/site
 !/vercel.json
+!/api
+!/pipeline
+!/config.py
+!/sprinto_facts.md
+!/requirements.txt

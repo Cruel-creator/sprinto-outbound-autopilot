@@ -5,6 +5,9 @@
   "installCommand": "",
   "outputDirectory": "site",
   "cleanUrls": true,
+  "functions": {
+    "api/*.py": { "maxDuration": 300, "includeFiles": "{config.py,pipeline/**,site/data/**,sprinto_facts.md}" }
+  },
   "headers": [
     {
       "source": "/(.*)",

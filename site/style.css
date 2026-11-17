@@ -254,8 +254,6 @@ tbody tr:hover { background: var(--bg-2); }
 .redo textarea:focus { outline: none; border-color: var(--ink); }
 .redo textarea::placeholder { color: var(--ink-3); }
 .redo-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
-.demo .redo { display: none; }
-
 @media (max-width: 900px) {
   .bar { grid-template-columns: 1fr auto; gap: 12px 20px; padding: 14px 20px 0; background: var(--bg); border-bottom: 1px solid var(--line-2); }
   .nav-link { padding-bottom: 12px; }
