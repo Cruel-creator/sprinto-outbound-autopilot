@@ -141,3 +141,49 @@ def test_draft_that_never_passes_is_held_not_sent(tmp_path, monkeypatch):
     resend = respx.post(RESEND_EMAILS).mock(return_value=httpx.Response(200, json={"id": "em_1"}))
     r = run.process("acme.com", _settings(), BadDraftLLM(), httpx.Client(), ICP, out_dir=tmp_path)
     assert r["status"] == "held" and "failed checks" in r["reason"] and resend.call_count == 0
+
+
+class RecordingLLM(FakeLLM):
+    def __init__(self):
+        self.calls = []
+
+    def json(self, schema, prompt, **kw):
+        self.calls.append((schema.__name__, kw.get("fresh", False), "ASKED FOR THIS CHANGE" in prompt))
+        return super().json(schema, prompt, **kw)
+
+
+@respx.mock
+def test_redraft_rewrites_only_the_email_and_waits_for_send(tmp_path, monkeypatch):
+    import pytest
+    monkeypatch.setattr(contacts, "CSV_PATH", tmp_path / "none.csv")
+    respx.get(url__regex=r"https://acme\.com/.*").mock(return_value=httpx.Response(200, html=HTML))
+    hunter = respx.get(contacts.HUNTER_SEARCH).mock(return_value=httpx.Response(200, json={"data": {"emails": [HOSTILE]}}))
+    resend = respx.post(RESEND_EMAILS).mock(return_value=httpx.Response(200, json={"id": "em_1"}))
+    s = _settings()
+    assert run.process("acme.com", s, FakeLLM(), httpx.Client(), ICP, out_dir=tmp_path)["status"] == "sent"
+
+    llm = RecordingLLM()
+    assert run.redraft("acme.com", s, llm, note="shorter, softer question", out_dir=tmp_path)["status"] == "ready"
+    assert resend.call_count == 1 and hunter.call_count == 1          # nothing sent, no new Hunter search
+    assert {n for n, _, _ in llm.calls} == {"Pains", "Draft", "Review"} and all(f for _, f, _ in llm.calls)
+    assert any(steer for n, _, steer in llm.calls if n == "Draft")     # your note reached the drafter
+    trace = json.loads((tmp_path / "acme.com" / "trace.json").read_text(encoding="utf-8"))
+    assert trace["steps"]["qualify"]["verdict"] == "QUALIFY" and len(trace["steps"]["draft_history"]) == 1
+
+    res = run.send_draft("acme.com", s, out_dir=tmp_path)
+    assert res["id"] == "em_1" and resend.call_count == 2
+    assert json.loads(resend.calls.last.request.read())["to"] == ["me@example.com"]
+    trace = json.loads((tmp_path / "acme.com" / "trace.json").read_text(encoding="utf-8"))
+    assert trace["status"] == "sent" and len(trace["steps"]["send_history"]) == 1
+    with pytest.raises(ValueError):
+        run.send_draft("acme.com", s, out_dir=tmp_path)                # nothing waiting any more
+
+
+@respx.mock
+def test_redraft_refuses_a_company_that_did_not_qualify(tmp_path, monkeypatch):
+    import pytest
+    monkeypatch.setattr(contacts, "CSV_PATH", tmp_path / "none.csv")
+    respx.get(url__regex=r"https://shop\.com/.*").mock(return_value=httpx.Response(200, html=HTML.replace("Acme", "shop.com")))
+    assert run.process("shop.com", _settings(), FakeLLM(), httpx.Client(), ICP, out_dir=tmp_path)["status"] == "not_qualified"
+    with pytest.raises(ValueError):
+        run.redraft("shop.com", _settings(), FakeLLM(), out_dir=tmp_path)

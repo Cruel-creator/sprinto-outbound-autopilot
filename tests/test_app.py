@@ -43,3 +43,11 @@ def test_guards(server):
     assert httpx.post(f"{server}/api/account/acme.com/review", json={"stage": "bogus"}).status_code == 400
     assert httpx.get(f"{server}/api/account/..%2F..%2Fetc").status_code == 404                           # no traversal
     assert httpx.post(f"{server}/api/run", json={"domains": ["not a domain; rm -rf"]}).status_code == 400
+
+
+def test_redraft_and_send_guards(server):
+    r = httpx.post(f"{server}/api/account/acme.com/redraft", json={"note": "shorter"})
+    assert r.status_code == 400 and "qualified" in r.json()["error"]          # no verdict or contact yet
+    r = httpx.post(f"{server}/api/account/acme.com/send", json={})
+    assert r.status_code == 400 and "no checked draft" in r.json()["error"]   # nothing ready to send
+    assert httpx.post(f"{server}/api/account/nope.com/send", json={}).status_code == 404

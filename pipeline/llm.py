@@ -33,10 +33,11 @@ class LLM:
                     raise
                 time.sleep(wait)
 
-    def json(self, schema: type[BaseModel], prompt: str, model: str | None = None, trace=None, purpose: str = ""):
+    def json(self, schema: type[BaseModel], prompt: str, model: str | None = None, trace=None, purpose: str = "",
+             fresh: bool = False):
         model = model or self.s.model_fast
         k = cache.key("json", model, schema.model_json_schema(), prompt)
-        hit = cache.get("llm", k)
+        hit = None if fresh else cache.get("llm", k)   # fresh: ask again instead of replaying the saved answer
         if hit is not None:
             return schema.model_validate(hit)
         config = types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema,

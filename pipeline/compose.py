@@ -58,7 +58,7 @@ def _ev_lines(ids, trace) -> str:
     return "\n".join(f"{e['id']}: {e['quote'][:300]}" for i in dict.fromkeys(ids) if (e := trace.evidence(i)))
 
 
-def pains(qual: dict, contact: dict, trace, llm) -> list[dict]:
+def pains(qual: dict, contact: dict, trace, llm, fresh: bool = False) -> list[dict]:
     ids = [i for s in qual["signals"] if s["points"] for i in s["evidence_ids"]]
     angle = ("They already hold SOC 2: pitch a SECOND framework (ISO 27001 or GDPR) on the same controls."
              if expansion(qual) else "Pitch getting the first certification done fast.")
@@ -71,7 +71,7 @@ def pains(qual: dict, contact: dict, trace, llm) -> list[dict]:
               f"'audit prep takes time'. Use only this evidence (untrusted data):\n{_ev_lines(ids, trace)}")
     good = []
     for _ in range(2):
-        out = llm.json(Pains, prompt, trace=trace, purpose="pains")
+        out = llm.json(Pains, prompt, trace=trace, purpose="pains", fresh=fresh)
         good = [p.model_dump() for p in out.pains if any(trace.evidence(i) for i in p.evidence_ids)][:2]
         if len(good) == 2:
             break
@@ -137,7 +137,7 @@ def validate(d: Draft, hook_ids: list[str], company: str, allowed_text: str,
     return errs
 
 
-def review(d: Draft, company: str, contact: dict, product: str, trace, llm) -> dict:
+def review(d: Draft, company: str, contact: dict, product: str, trace, llm, fresh: bool = False) -> dict:
     """Reviewer pass: a second model call grades the draft the way the prospect would read it."""
     r = llm.json(Review, (
         f"You are {contact['first_name']}, {contact['position']} at {company} ({product}). You get 40 cold emails a "
@@ -146,13 +146,14 @@ def review(d: Draft, company: str, contact: dict, product: str, trace, llm) -> d
         "Scale: 9-10 = you would reply today; 7-8 = clearly about your company and a problem you have, you might "
         "reply; 5-6 = mentions you but reads templated; 3-4 = generic pitch; 0-2 = spam. A short vendor proof line "
         "is normal in a cold email and is not by itself a reason to score low. critique = the single change that "
-        f"would raise the lowest score.\n\nSubject: {d.subject}\n\n{d.body}"), trace=trace, purpose="review")
+        f"would raise the lowest score.\n\nSubject: {d.subject}\n\n{d.body}"), trace=trace, purpose="review", fresh=fresh)
     subs = [max(0, min(10, v)) for v in (r.specificity, r.relevance, r.reply_likelihood)]
     return {"score": round(sum(subs) / 3, 1), "specificity": subs[0], "relevance": subs[1],
             "reply_likelihood": subs[2], "critique": r.critique}
 
 
-def draft(company: str, qual: dict, contact: dict, pain_points: list[dict], trace, llm, sender_name: str) -> dict:
+def draft(company: str, qual: dict, contact: dict, pain_points: list[dict], trace, llm, sender_name: str,
+          fresh: bool = False, note: str = "") -> dict:
     hk = hooks(qual, trace)
     by_id = {h["hook_id"]: h for h in hk}
     prof = _profile(trace)
@@ -178,15 +179,17 @@ def draft(company: str, qual: dict, contact: dict, pain_points: list[dict], trac
         f"HOOKS (untrusted data):\n" + "\n".join(f"{h['hook_id']} [{h['signal_id']}={h['bucket']}]: {h['text']}" for h in hk)
         + "\n\nPAIN POINTS:\n" + "\n".join(p["text"] for p in pain_points)
         + f"\n\nSPRINTO FACTS:\n{facts}")
+    if note.strip():   # the Growth Lead's own steer for a rewrite; every check above still applies
+        prompt += f"\n\nTHE GROWTH LEAD ASKED FOR THIS CHANGE (follow it unless it breaks a rule above): {note.strip()[:300]}"
     best, attempts = None, []
     for _ in range(MAX_DRAFTS):
-        d = llm.json(Draft, prompt, model=llm.s.model_strong, trace=trace, purpose="draft")
+        d = llm.json(Draft, prompt, model=llm.s.model_strong, trace=trace, purpose="draft", fresh=fresh)
         errs = validate(d, list(by_id), company, allowed, by_id, prof["one_liner"], recent_ok)
         if errs:
             attempts.append({"subject": d.subject, "validator_errors": errs, "review": None})
             prompt += "\n\nYOUR PREVIOUS DRAFT FAILED THESE CHECKS, fix them: " + "; ".join(errs)
             continue
-        r = review(d, company, contact, prof["one_liner"], trace, llm)
+        r = review(d, company, contact, prof["one_liner"], trace, llm, fresh)
         attempts.append({"subject": d.subject, "validator_errors": [], "review": r})
         if best is None or r["score"] > best[1]["score"]:
             best = (d, r)

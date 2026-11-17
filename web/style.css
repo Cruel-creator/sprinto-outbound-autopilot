@@ -152,6 +152,9 @@ svg { stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round
 .pill-btn { height: 40px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--line); background: none; font-size: 13px; letter-spacing: .04em; cursor: pointer; transition: background .4s var(--ease), color .4s, border-color .4s; }
 .pill-btn:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .pill-btn:active { transform: scale(.98); }
+.pill-btn:disabled { opacity: .45; cursor: progress; }
+.pill-btn.solid { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pill-btn.solid:hover { background: transparent; color: var(--ink); }
 .link-cta { margin-top: 56px; display: inline-flex; align-items: center; gap: 14px; background: none; border: 0; padding: 0; cursor: pointer; font: 300 clamp(28px, 3vw, 44px)/1 var(--display); letter-spacing: -.02em; color: var(--ink); }
 .link-cta svg { width: 30px; height: 30px; transition: transform .5s var(--ease); }
 .link-cta:hover svg { transform: translateX(8px); }
@@ -245,6 +248,13 @@ tbody tr:hover { background: var(--bg-2); }
 .review select option { background: var(--bg-2); }
 .review textarea { resize: vertical; }
 .review-foot { display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--ink-3); }
+.redo { padding-top: 22px; border-top: 1px solid var(--line-2); }
+.redo-label { font-size: 13px; color: var(--ink-2); }
+.redo textarea { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 8px 0; font-size: 15px; color: var(--ink); resize: vertical; }
+.redo textarea:focus { outline: none; border-color: var(--ink); }
+.redo textarea::placeholder { color: var(--ink-3); }
+.redo-actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.demo .redo { display: none; }
 
 @media (max-width: 900px) {
   .bar { grid-template-columns: 1fr auto; gap: 12px 20px; padding: 14px 20px 0; background: var(--bg); border-bottom: 1px solid var(--line-2); }

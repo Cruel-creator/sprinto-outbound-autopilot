@@ -22,7 +22,7 @@ FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascrip
          "/style.css": ("style.css", "text/css")}
 VENDOR_TYPES = {".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2"}
 DOMAIN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9-]{1,63})+$")
-JOB = {"running": False, "queue": [], "current": None, "done": [], "error": None}
+JOB = {"running": False, "action": "Researching", "queue": [], "current": None, "done": [], "error": None}
 LOCK = threading.Lock()
 
 
@@ -30,7 +30,7 @@ def lane(r: dict, stage: str) -> str:
     if stage in STAGES:
         return stage
     return {"sent": "contacted", "not_qualified": "not_fit", "no_contact": "qualified",
-            "held": "needs_review"}.get(r["status"], "needs_data")
+            "held": "needs_review", "ready": "needs_review"}.get(r["status"], "needs_data")
 
 
 def _trace(domain: str) -> dict | None:
@@ -66,19 +66,18 @@ def account(domain: str, to_email: str) -> dict | None:
             "gmail": gmail_link(to_email, d["subject"], d["text"]) if d else None}
 
 
-def start_job(domains: list[str], s) -> str | None:
+def _start(action: str, domains: list[str], one, s) -> str | None:
+    """Run one(domain) -> status for each domain in a background thread; one job at a time."""
     with LOCK:
         if JOB["running"]:
-            return "a run is already in progress"
-        JOB.update(running=True, queue=list(domains), current=None, done=[], error=None)
+            return "something is already running; wait for it to finish"
+        JOB.update(running=True, action=action, queue=list(domains), current=None, done=[], error=None)
 
     def work():
         try:
-            llm, http, icp = LLM(s), scrape.client(), load_icp()
             while JOB["queue"]:
                 JOB["current"] = JOB["queue"].pop(0)
-                res = run.process(JOB["current"], s, llm, http, icp)
-                JOB["done"].append({"domain": JOB["current"], "status": res["status"]})
+                JOB["done"].append({"domain": JOB["current"], "status": one(JOB["current"])})
             rebuild(OUT, s.to_email)
         except Exception as e:  # surfaced in the UI; secrets scrubbed
             msg = f"{type(e).__name__}: {e}"
@@ -90,6 +89,25 @@ def start_job(domains: list[str], s) -> str | None:
 
     threading.Thread(target=work, daemon=True).start()
     return None
+
+
+def start_job(domains: list[str], s) -> str | None:
+    ctx = {}
+
+    def one(d):
+        if not ctx:
+            ctx.update(llm=LLM(s), http=scrape.client(), icp=load_icp())
+        return run.process(d, s, ctx["llm"], ctx["http"], ctx["icp"])["status"]
+    return _start("Researching", domains, one, s)
+
+
+def start_redraft(domain: str, note: str, s) -> str | None:
+    return _start("Rewriting the email for", [domain], lambda d: run.redraft(d, s, LLM(s), note, out_dir=OUT)["status"], s)
+
+
+def can_redraft(data: dict) -> bool:
+    q, c = data["steps"].get("qualify") or {}, data["steps"].get("contact") or {}
+    return q.get("verdict") in ("QUALIFY", "PRIORITY") and bool(c.get("chosen"))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -129,10 +147,11 @@ class Handler(BaseHTTPRequestHandler):
         self._send(404, {"error": "not found"})
 
     def do_POST(self):
+        raw = self.rfile.read(min(int(self.headers.get("Content-Length", 0) or 0), 20000))   # drain first: Windows resets unread sockets
         if not self._local() or "application/json" not in self.headers.get("Content-Type", ""):
             return self._send(403, {"error": "forbidden"})   # JSON-only also stops cross-site form posts
         try:
-            body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 20000)) or b"{}")
+            body = json.loads(raw or b"{}")
         except ValueError:
             return self._send(400, {"error": "bad json"})
         path = self.path.split("?")[0]
@@ -143,15 +162,34 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(400, {"error": f"invalid domains: {bad or 'none given'}"})
             err = start_job(domains, self.settings)
             return self._send(409, {"error": err}) if err else self._send(202, JOB)
-        m = re.fullmatch(r"/api/account/([^/]+)/review", path)
-        if m and _trace(m.group(1)):
+        m = re.fullmatch(r"/api/account/([^/]+)/(review|redraft|send)", path)
+        data = _trace(m.group(1)) if m else None
+        if not data:
+            return self._send(404, {"error": "not found"})
+        domain, action = m.groups()
+        if action == "review":
             if body.get("stage") not in ("", None, *STAGES):
                 return self._send(400, {"error": "unknown stage"})
             try:
-                return self._send(200, update_review(OUT / "review.csv", m.group(1), body))
+                return self._send(200, update_review(OUT / "review.csv", domain, body))
             except KeyError:
                 return self._send(404, {"error": "run the pipeline for this account first"})
-        self._send(404, {"error": "not found"})
+        if action == "redraft":
+            if not can_redraft(data):
+                return self._send(400, {"error": "only a qualified company with a contact can get a new email"})
+            err = start_redraft(domain, str(body.get("note") or "")[:300], self.settings)
+            return self._send(409, {"error": err}) if err else self._send(202, JOB)
+        try:   # send: only a draft that passed every check, only to your own inbox
+            res = run.send_draft(domain, self.settings, out_dir=OUT)
+        except ValueError as e:
+            return self._send(400, {"error": str(e)})
+        except RuntimeError as e:
+            msg = str(e)
+            for secret in self.settings.secrets:
+                msg = msg.replace(secret, "***")
+            return self._send(502, {"error": f"Resend refused it: {msg[:200]}"})
+        rebuild(OUT, self.settings.to_email)
+        return self._send(200, {"id": res["id"], "sent_at": res["sent_at"]})
 
     def log_message(self, *args):  # keep the console quiet
         pass

@@ -14,7 +14,7 @@ const SIGNAL = { A1_b2b_software: "B2B software", A2_stage: "Funding stage", A3_
   C3_security_hiring: "Security hiring", C4_recent_funding: "Recent funding", C5_geo_expansion: "US or EU expansion",
   D1_stack_integrates: "Cloud stack fit", D2_multi_framework_pull: "Multiple frameworks", D3_recent_enterprise_win: "Recent enterprise win" };
 const TOOL = { web_research: "web search", job_postings: "job boards", fetch_page: "page fetch" };
-const LANES = [["qualified", "No contact"], ["needs_review", "Held"], ["contacted", "Emailed"], ["replied", "Replied"],
+const LANES = [["qualified", "No contact"], ["needs_review", "To review"], ["contacted", "Emailed"], ["replied", "Replied"],
   ["meeting", "Meeting"], ["won", "Won"], ["lost", "Lost"], ["needs_data", "Needs data"], ["not_fit", "Not a fit"]];
 
 function el(tag, props = {}, ...kids) {
@@ -60,7 +60,8 @@ const activate = (fn) => ({ click: fn, keydown: (e) => { if (e.key === "Enter" |
 // ---------- meaning ----------
 function status(a) {
   return ({ sent: ["Emailed", "accent"], held: ["Held", "ember"], no_contact: ["No contact", "ember"], not_qualified: ["Not a fit", "dim"],
-    insufficient_data: ["Needs data", "ember"], failed: ["Error", "ember"], running: ["Researching", "accent"] })[a.status] || [a.status, ""];
+    insufficient_data: ["Needs data", "ember"], failed: ["Error", "ember"], running: ["Researching", "accent"],
+    ready: ["Draft ready", "accent"] })[a.status] || [a.status, ""];
 }
 function why(a) {          // [reason, needs-you?]
   const gate = /Disqualified \((\w+)\)/.exec(a.reason || "");
@@ -72,6 +73,7 @@ function why(a) {          // [reason, needs-you?]
   if (["REJECT", "NURTURE"].includes(a.verdict)) return [`Scored under ${BAR}`, false];
   if (a.status === "no_contact") return ["No contact found", true];
   if (a.status === "held") return ["Email held", true];
+  if (a.status === "ready") return ["New draft to review", true];
   if (a.status === "sent") return [`Emailed ${first(a.contact)}`.trim(), false];
   return [a.reason || "", false];
 }
@@ -87,7 +89,7 @@ function plainCheck(err) {
 const checks = (a) => (a.reason || "").replace(/^email held for review, failed checks: /, "").split("; ").filter(Boolean).map(plainCheck);
 const qualified = (a) => ["QUALIFY", "PRIORITY"].includes(a.verdict);
 const changed = (a) => a.fixed && a.fixed !== a.verdict;
-const needsYou = (a) => ["held", "no_contact", "insufficient_data", "failed"].includes(a.status);
+const needsYou = (a) => ["held", "ready", "no_contact", "insufficient_data", "failed"].includes(a.status);
 function highlight(d, on) { if (d) $$(`[data-domain="${CSS.escape(d)}"]`).forEach((n) => n.classList.toggle("hl", on)); }
 const hover = (d) => ({ mouseenter: () => highlight(d, true), mouseleave: () => highlight(d, false), focus: () => highlight(d, true), blur: () => highlight(d, false) });
 
@@ -162,6 +164,7 @@ function chMail(A, sent, held) {
 
 function chQueue(A) {
   const items = [];
+  A.filter((a) => a.status === "ready").forEach((a) => items.push([`New email for ${first(a.contact) || a.name}`, "It passed every check. Read it, then send it to your inbox.", "Review & send", () => openAccount(a.domain, "email"), a.domain]));
   A.filter((a) => a.status === "held").forEach((a) => items.push([`Held email to ${first(a.contact) || a.name}`, checks(a)[0] || "It failed a check.", "Open email", () => openAccount(a.domain, "email"), a.domain]));
   A.filter((a) => a.status === "no_contact").forEach((a) => items.push([`No contact at ${a.name}`, "Add one to contacts.csv, then re-run.", "Open", () => openAccount(a.domain, "contact"), a.domain]));
   A.filter((a) => ["insufficient_data", "failed"].includes(a.status)).forEach((a) => items.push([a.domain, why(a)[0], "Re-run", () => run([a.domain]), a.domain]));
@@ -245,14 +248,46 @@ function paneContact(t) {
 function paneEmail(t, gmail) {
   const d = t.steps.draft, s = t.steps.send;
   if (!d) return [el("p", { class: "note" }, "No email: not qualified or no contact.")];
-  const rv = d.review;
+  const rv = d.review, ready = t.status === "ready", history = t.steps.draft_history || [];
   return [
-    t.status === "held" ? el("p", { class: "note ember" }, "Held, not sent. ", d.validator_errors.map(plainCheck).join(" ")) : s?.id ? el("p", { class: "note accent" }, `Sent to ${s.to} · ${when(s.sent_at)}`) : null,
+    t.status === "held" ? el("p", { class: "note ember" }, "Held, not sent. ", d.validator_errors.map(plainCheck).join(" "))
+      : ready ? el("p", { class: "note accent" }, "New draft. It passed every check and has not been sent yet.")
+      : s?.id ? el("p", { class: "note accent" }, `Sent to ${s.to} · ${when(s.sent_at)}`) : null,
     rv && el("div", { class: "scores" }, [["Overall", rv.score], ["Specific", rv.specificity], ["Relevant", rv.relevance], ["Would reply", rv.reply_likelihood]].map(([l, v]) => el("div", {}, el("b", {}, v), el("span", {}, l)))),
     rv && el("p", { class: "note" }, rv.critique),
     el("div", { class: "sec" }, el("div", { class: "subj" }, d.subject), el("div", { class: "mail" }, d.text),
       gmail && el("a", { href: gmail, target: "_blank", rel: "noopener noreferrer" }, "Open in Gmail, to yourself")),
+    !DEMO && ready && el("div", { class: "redo-actions" }, el("button", { class: "pill-btn solid", id: "send-draft", on: { click: sendDraft } }, "Send to my inbox"),
+      el("span", { class: "note", id: "send-msg", role: "status" })),
+    !DEMO && el("div", { class: "sec redo" }, el("h3", {}, "Redo this email"),
+      el("p", { class: "note" }, "Keeps the research and the contact. Writes a fresh draft, runs every check, and waits for you before sending."),
+      el("label", { class: "redo-label", for: "redo-note" }, "What should change? (optional)"),
+      el("textarea", { id: "redo-note", rows: "2", maxlength: "300", placeholder: "e.g. shorter, lead with data residency, a softer question" }),
+      el("div", { class: "redo-actions" }, el("button", { class: "pill-btn", id: "redo-btn", disabled: STATE.busy ? "" : null, on: { click: redoEmail } }, "Write a new version"),
+        el("span", { class: "note", id: "redo-msg", role: "status" }, STATE.busy ? "Something is running; wait for it to finish." : ""))),
+    history.length && el("div", { class: "sec" }, el("h3", {}, `Earlier versions (${history.length})`),
+      history.slice().reverse().map((h) => el("p", { class: "note" }, `${h.subject} · ${h.review ? `${h.review.score} / 10` : "failed checks"}`))),
   ];
+}
+async function redoEmail() {
+  try {
+    showJob(await api(`/api/account/${encodeURIComponent(STATE.open)}/redraft`, { note: $("#redo-note").value.trim() }));
+    $("#redo-btn").disabled = true;
+    $("#redo-msg").textContent = "Writing a new version. It takes about a minute; you can close this panel.";
+  } catch (e) { $("#redo-msg").textContent = e.message; }
+}
+async function sendDraft() {
+  $("#send-draft").disabled = true;
+  try {
+    const r = await api(`/api/account/${encodeURIComponent(STATE.open)}/send`, {});
+    $("#send-msg").textContent = `Sent to your inbox · ${when(r.sent_at)}`;
+    await load(); await refreshDrawer();
+  } catch (e) { $("#send-msg").textContent = e.message; $("#send-draft").disabled = false; }
+}
+async function refreshDrawer() {   // re-read the open account so the drawer shows the latest draft
+  if (!STATE.open || $("#drawer").hidden) return;
+  STATE.detail = await api(`/api/account/${encodeURIComponent(STATE.open)}`);
+  drawPane();
 }
 function paneActivity(t) {
   const st = t.steps, items = [];
@@ -422,9 +457,10 @@ function showJob(j) {
   const box = $("#job");
   box.classList.toggle("busy", !!j.running); box.classList.toggle("err", !!j.error);
   $("#run-btn").disabled = j.running;
-  box.textContent = j.running ? `Researching ${j.current || "…"}` : j.error ? `Run stopped: ${j.error}` : j.done.length ? `Done: ${j.done.map((d) => `${d.domain} ${status(d)[0].toLowerCase()}`).join(", ")}` : "";
+  STATE.busy = !!j.running;
+  box.textContent = j.running ? `${j.action || "Researching"} ${j.current || "…"}` : j.error ? `Stopped: ${j.error}` : j.done.length ? `Done: ${j.done.map((d) => `${d.domain} ${status(d)[0].toLowerCase()}`).join(", ")}` : "";
   if (j.running && !polling) polling = setInterval(async () => showJob(await api("/api/job")), 3000);
-  if (!j.running && polling) { clearInterval(polling); polling = null; load(); }
+  if (!j.running && polling) { clearInterval(polling); polling = null; load().then(refreshDrawer); }
 }
 async function run(domains) { try { showJob(await api("/api/run", { domains })); } catch (e) { showJob({ running: false, done: [], error: e.message }); } }
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
@@ -81,6 +82,49 @@ def process(domain: str, s, llm, http, icp: dict, out_dir: Path = OUT) -> dict:
         t.data.update(reason=row.get("reason", ""), seconds=round(time.monotonic() - t0, 1))
         t.flush()
         write_report(t.data, s.to_email, out_dir)
+
+
+def load_trace(domain: str, out_dir: Path = OUT) -> Trace:
+    t = Trace(domain, out_dir)
+    t.data = json.loads(t.path.read_text(encoding="utf-8"))
+    return t
+
+
+def redraft(domain: str, s, llm, note: str = "", out_dir: Path = OUT) -> dict:
+    """Rewrite only the email: research, score and contact stay; drafts are asked for fresh; nothing is sent."""
+    t = load_trace(domain, out_dir)
+    st = t.data["steps"]
+    q, who = st.get("qualify"), (st.get("contact") or {}).get("chosen")
+    if not q or q["verdict"] not in ("QUALIFY", "PRIORITY") or not who:
+        raise ValueError("only a qualified company with a contact can get a new email")
+    if st.get("draft"):
+        st.setdefault("draft_history", []).append(st["draft"])
+    p = pains(q, who, t, llm, fresh=True)
+    d = draft(st["extract"]["name"], q, who, p, t, llm, s.sender_name, fresh=True, note=note)
+    errs = d["validator_errors"]
+    t.data.update(status="held" if errs else "ready",
+                  reason=("email held for review, failed checks: " + "; ".join(errs)) if errs else "new draft ready to send")
+    t.flush()
+    write_report(t.data, s.to_email, out_dir)
+    return {"domain": domain, "status": t.data["status"]}
+
+
+def send_draft(domain: str, s, http=None, out_dir: Path = OUT) -> dict:
+    """Send the reviewed draft to your own inbox. Only a draft that passed every check can be sent."""
+    t = load_trace(domain, out_dir)
+    st = t.data["steps"]
+    d, who = st.get("draft"), (st.get("contact") or {}).get("chosen")
+    if t.data["status"] != "ready" or not d or d["validator_errors"] or not who:
+        raise ValueError("there is no checked draft waiting to be sent")
+    res = send_email(d["subject"], d["text"] + footer(who), s, http)
+    if res["error"]:
+        raise RuntimeError(res["error"])
+    if st.get("send"):
+        st.setdefault("send_history", []).append(st["send"])
+    t.data.update(status="sent", reason="")
+    t.step("send", res)
+    write_report(t.data, s.to_email, out_dir)
+    return res
 
 
 def main(argv=None) -> int:
